@@ -34,6 +34,10 @@ extern "C" __declspec(dllexport) HINSTANCE getDllHinstance() {
     return g_hDll;
 }
 
+extern "C" __declspec(dllexport) int getSocketPort() {
+    return PORT;
+}
+
 void printLog(const std::string& message)
 {
     if (myfile.is_open()) {
@@ -61,6 +65,7 @@ BOOL APIENTRY DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
     {
     case DLL_PROCESS_ATTACH:
         g_hDll = hinstDLL;
+        //MessageBoxA(0, "Attach now", "Attach now", 0);
         return true;
     case DLL_PROCESS_DETACH:
         UnsetMsgHook();
