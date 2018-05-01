@@ -79,7 +79,7 @@ BOOL OpenLogFile(char* path) {
     return myfile.is_open();
 }
 
-void infinityWait() {
+void infiniteWait() {
     std::condition_variable cv;
     std::mutex m;
     std::unique_lock<std::mutex> lock(m);
@@ -122,17 +122,18 @@ BOOL SetMsgHook(char* path = nullptr)
         _com_error err(hr);
         LPCTSTR errMsg = err.ErrorMessage();
         printLog("Error when hook set");
+        return FALSE;
     }
 
     initSocket();
-    infinityWait();
+    infiniteWait();
     return g_hHook != NULL;
 }
 
 BOOL UnsetMsgHook()
 {
     if (g_hHook == NULL)
-        return false;
+        return FALSE;
 
     if (myfile.is_open())
         myfile.close();
@@ -161,7 +162,7 @@ LRESULT CALLBACK SysMsgProc(int nCode, WPARAM wParam, LPARAM lParam)
             {
                 closesocket(sock);
                 printLog("Socket closed!");
-                return 0;
+                return CallNextHookEx(g_hHook, nCode, wParam, lParam);
             }
         }
     }
