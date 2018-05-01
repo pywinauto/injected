@@ -135,15 +135,17 @@ BOOL UnsetMsgHook()
     if (g_hHook == NULL)
         return FALSE;
 
-    if (myfile.is_open())
-        myfile.close();
-
     BOOL isUnhooked = UnhookWindowsHookEx(g_hHook);
     if (isUnhooked)
     {
         printLog("Unhook");
         g_hHook = NULL;
     }
+
+    if (myfile.is_open())
+        myfile.close();
+
+    closesocket(sock);
 
     return isUnhooked;
 }
