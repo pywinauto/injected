@@ -16,12 +16,12 @@
 
 HHOOK g_hHook = NULL;
 HINSTANCE g_hDll = NULL;
-#define PORT 17078
 
 BOOL APIENTRY DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved);
 extern "C" __declspec(dllexport) BOOL SetMsgHook(char* path);    // Exported
 extern "C" __declspec(dllexport) BOOL UnsetMsgHook();
 extern "C" __declspec(dllexport) BOOL OpenLogFile(char* path);
+extern "C" __declspec(dllexport) BOOL InitSocket(int* port);
 LRESULT CALLBACK SysMsgProc(int nCode, WPARAM wParam, LPARAM lParam);
 
 SOCKET sock;
@@ -32,10 +32,6 @@ std::ofstream myfile;
 
 extern "C" __declspec(dllexport) HINSTANCE getDllHinstance() {
     return g_hDll;
-}
-
-extern "C" __declspec(dllexport) int getSocketPort() {
-    return PORT;
 }
 
 void printLog(const std::string& message)
@@ -65,7 +61,6 @@ BOOL APIENTRY DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
     {
     case DLL_PROCESS_ATTACH:
         g_hDll = hinstDLL;
-        //MessageBoxA(0, "Attach now", "Attach now", 0);
         return true;
     case DLL_PROCESS_DETACH:
         UnsetMsgHook();
@@ -86,30 +81,32 @@ void infiniteWait() {
     cv.wait(lock, [] {return false; });
 }
 
-void initSocket() {
+BOOL InitSocket(int* port) {
+    //MessageBoxA(0, "Attach now", "InitSocketCall", 0);
     WSADATA wsaData;
     WSAStartup(MAKEWORD(2, 2), &wsaData);
     sock = socket(AF_INET, SOCK_DGRAM, 0);
     if (sock == INVALID_SOCKET) {
-        return;
+        return 0;
     }
     BOOL enabled = TRUE;
     if (setsockopt(sock, SOL_SOCKET, SO_BROADCAST, (char*)&enabled, sizeof(BOOL)) < 0) {
-        return;
+        return 0;
     }
     Sender_addr.sin_family = AF_INET;
-    Sender_addr.sin_port = htons(PORT);
+    Sender_addr.sin_port = htons(*port);
     Sender_addr.sin_addr.s_addr = inet_addr("localhost");
     socketInitialized = true;
+    return 1;
 }
 
 /*
-Call this function after dll injected
+    Call this function after dll injected
 */
 BOOL SetMsgHook(char* path = nullptr)
 {
+    //MessageBoxA(0, "Attach now", "SetMsgHookCall", 0);
     OpenLogFile(path);
-    //MessageBoxA(0, "Attach now", "Attach now", 0);
     g_hHook = SetWindowsHookEx(WH_GETMESSAGE, SysMsgProc, g_hDll, 0);
     if (g_hHook != NULL)
     {
@@ -125,7 +122,6 @@ BOOL SetMsgHook(char* path = nullptr)
         return FALSE;
     }
 
-    initSocket();
     infiniteWait();
     return g_hHook != NULL;
 }

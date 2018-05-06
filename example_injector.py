@@ -1,7 +1,7 @@
-from socket import *
-import ctypes
-from ctypes import wintypes
+import sys
 import win32con
+from injector import *
+from ctypes import wintypes
 from mywin32enum import WIN_ID_TO_KEY
 
 def print_winmsg(msg):
@@ -12,13 +12,17 @@ def print_winmsg(msg):
     print "time:" +  str(msg.time)
     print "pt:" + str(msg.pt.x) + ',' + str(msg.pt.x)
 
-s = socket(AF_INET, SOCK_DGRAM)
-s.bind(('',17078))
+if (len(sys.argv) != 3):
+    print("Usage: {} <PID> <Path To DLL>".format(sys.argv[0]))
+    print("Eg: {} 1111 C:\\test\messagebox.dll".format(sys.argv[0]))
+    sys.exit(0)
+
+sock = execute_workflow(sys.argv[1], sys.argv[2])
 
 while(1):
     msg = wintypes.MSG()
-    m = s.recvfrom(1024)
+    m = sock.recvfrom(1024)
     ctypes.memmove(ctypes.pointer(msg),m[0],ctypes.sizeof(msg))
     print_winmsg(msg)
     if msg.message == win32con.WM_QUIT:
-    	break;
+        break;

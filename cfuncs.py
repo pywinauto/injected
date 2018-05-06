@@ -8,6 +8,7 @@ from pywinauto.win32structures import SECURITY_ATTRIBUTES
 from pywinauto import win32defines
 
 PAGE_READWRITE = win32defines.PAGE_READWRITE
+WAIT_TIMEOUT = win32defines.WAIT_TIMEOUT
 PROCESS_ALL_ACCESS = ( win32defines.PROCESS_VM_OPERATION | win32defines.PROCESS_VM_READ | win32defines.PROCESS_VM_WRITE )
 VIRTUAL_MEM = ( win32defines.MEM_RESERVE | win32defines.MEM_COMMIT )
 LPCSTR = LPCTSTR = ctypes.c_char_p
@@ -35,9 +36,9 @@ CreateRemoteThread = ctypes.windll.kernel32.CreateRemoteThread
 CreateRemoteThread.restype = HANDLE
 CreateRemoteThread.argtypes = (HANDLE, LPSECURITY_ATTRIBUTES, DWORD, LPTHREAD_START_ROUTINE, LPVOID, DWORD, LPDWORD)
 
-GetModuleHandle = ctypes.windll.kernel32.GetModuleHandleA
-GetModuleHandle.restype = HANDLE
-GetModuleHandle.argtypes = (LPCTSTR,)
+GetModuleHandleA = ctypes.windll.kernel32.GetModuleHandleA
+GetModuleHandleA.restype = HANDLE
+GetModuleHandleA.argtypes = (LPCTSTR,)
 
 LoadLibraryA = ctypes.windll.kernel32.LoadLibraryA
 LoadLibraryA.restype = HANDLE
@@ -46,3 +47,7 @@ LoadLibraryA.argtypes = (LPCTSTR,)
 GetProcAddress = ctypes.windll.kernel32.GetProcAddress
 GetProcAddress.restype = LPVOID
 GetProcAddress.argtypes = (HANDLE, LPCTSTR)
+
+WaitForSingleObject = ctypes.windll.kernel32.WaitForSingleObject
+WaitForSingleObject.restype = DWORD
+WaitForSingleObject.argtypes = (HANDLE, DWORD)
