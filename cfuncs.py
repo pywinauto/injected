@@ -12,6 +12,7 @@ WAIT_TIMEOUT = win32defines.WAIT_TIMEOUT
 PROCESS_ALL_ACCESS = ( win32defines.PROCESS_VM_OPERATION | win32defines.PROCESS_VM_READ | win32defines.PROCESS_VM_WRITE )
 VIRTUAL_MEM = ( win32defines.MEM_RESERVE | win32defines.MEM_COMMIT )
 LPCSTR = LPCTSTR = ctypes.c_char_p
+LPWTSTR = ctypes.c_wchar_p
 LPDWORD = PDWORD = ctypes.POINTER(DWORD)
 LPTHREAD_START_ROUTINE = LPVOID
 LPSECURITY_ATTRIBUTES = ctypes.POINTER(SECURITY_ATTRIBUTES)
@@ -43,6 +44,14 @@ GetModuleHandleA.argtypes = (LPCTSTR,)
 LoadLibraryA = ctypes.windll.kernel32.LoadLibraryA
 LoadLibraryA.restype = HANDLE
 LoadLibraryA.argtypes = (LPCTSTR,)
+
+GetModuleHandleW = ctypes.windll.kernel32.GetModuleHandleW
+GetModuleHandleW.restype = HANDLE
+GetModuleHandleW.argtypes = (LPWTSTR,)
+
+LoadLibraryW = ctypes.windll.kernel32.LoadLibraryW
+LoadLibraryW.restype = HANDLE
+LoadLibraryW.argtypes = (LPWTSTR,)
 
 GetProcAddress = ctypes.windll.kernel32.GetProcAddress
 GetProcAddress.restype = LPVOID

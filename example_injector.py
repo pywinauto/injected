@@ -5,12 +5,12 @@ from ctypes import wintypes
 from mywin32enum import WIN_ID_TO_KEY
 
 def print_winmsg(msg):
-    print "hWnd:" +  str(msg.hWnd)
-    print "message:" + (WIN_ID_TO_KEY[msg.message] if msg.message in WIN_ID_TO_KEY else str(msg.message))
-    print "wParam:" +  str(msg.wParam)
-    print "lParam:" +  str(msg.lParam)
-    print "time:" +  str(msg.time)
-    print "pt:" + str(msg.pt.x) + ',' + str(msg.pt.x)
+    print("hWnd:{}".format(str(msg.hWnd)))
+    print("message:{}".format((WIN_ID_TO_KEY[msg.message] if msg.message in WIN_ID_TO_KEY else str(msg.message))))
+    print("wParam:{}".format(str(msg.wParam)))
+    print("lParam:{}".format(str(msg.lParam)))
+    print("time:{}".format(str(msg.time)))
+    print("pt:{}".format(str(msg.pt.x) + ',' + str(msg.pt.x)))
 
 if (len(sys.argv) != 3):
     print("Usage: {} <PID> <Path To DLL>".format(sys.argv[0]))
