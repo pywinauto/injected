@@ -1,8 +1,9 @@
 import sys
 import win32con
-from injector import *
+from injector import Injector
 from ctypes import wintypes
 from mywin32enum import WIN_ID_TO_KEY
+import ctypes
 
 def print_winmsg(msg):
     print("hWnd:{}".format(str(msg.hWnd)))
@@ -17,7 +18,8 @@ if (len(sys.argv) != 3):
     print("Eg: {} 1111 C:\\test\messagebox.dll".format(sys.argv[0]))
     sys.exit(0)
 
-sock = execute_workflow(sys.argv[1], sys.argv[2])
+inj = Injector(sys.argv[1], sys.argv[2])
+sock = inj.socket
 
 while(1):
     msg = wintypes.MSG()
