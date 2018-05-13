@@ -7,6 +7,11 @@ from ctypes.wintypes import LPCVOID
 from pywinauto.win32structures import SECURITY_ATTRIBUTES
 from pywinauto import win32defines
 
+'''
+    Some functions already exists in pywinauto, but for correctly
+    injector work needs full redefinition with ctypes compatible
+'''
+
 PAGE_READWRITE = win32defines.PAGE_READWRITE
 WAIT_TIMEOUT = win32defines.WAIT_TIMEOUT
 PROCESS_ALL_ACCESS = ( win32defines.PROCESS_VM_OPERATION | win32defines.PROCESS_VM_READ | win32defines.PROCESS_VM_WRITE )

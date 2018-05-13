@@ -87,17 +87,17 @@ BOOL InitSocket(int* port) {
     WSAStartup(MAKEWORD(2, 2), &wsaData);
     sock = socket(AF_INET, SOCK_DGRAM, 0);
     if (sock == INVALID_SOCKET) {
-        return 0;
+        return FALSE;
     }
     BOOL enabled = TRUE;
     if (setsockopt(sock, SOL_SOCKET, SO_BROADCAST, (char*)&enabled, sizeof(BOOL)) < 0) {
-        return 0;
+        return FALSE;
     }
     Sender_addr.sin_family = AF_INET;
     Sender_addr.sin_port = htons(*port);
     Sender_addr.sin_addr.s_addr = inet_addr("localhost");
     socketInitialized = true;
-    return 1;
+    return TRUE;
 }
 
 /*

@@ -1,24 +1,26 @@
 import sys
 import win32con
 from injector import Injector
+from pywinauto import Desktop
 from ctypes import wintypes
-from mywin32enum import WIN_ID_TO_KEY
+import win32con
 import ctypes
+
+msg_id_to_key = {getattr(win32con, attr_name): attr_name for attr_name in dir(win32con) if attr_name.startswith('WM_')}
 
 def print_winmsg(msg):
     print("hWnd:{}".format(str(msg.hWnd)))
-    print("message:{}".format((WIN_ID_TO_KEY[msg.message] if msg.message in WIN_ID_TO_KEY else str(msg.message))))
+    print("message:{}".format((msg_id_to_key[msg.message] if msg.message in msg_id_to_key else str(msg.message))))
     print("wParam:{}".format(str(msg.wParam)))
     print("lParam:{}".format(str(msg.lParam)))
     print("time:{}".format(str(msg.time)))
     print("pt:{}".format(str(msg.pt.x) + ',' + str(msg.pt.x)))
 
-if (len(sys.argv) != 3):
-    print("Usage: {} <PID> <Path To DLL>".format(sys.argv[0]))
-    print("Eg: {} 1111 C:\\test\messagebox.dll".format(sys.argv[0]))
+if (len(sys.argv) != 2):
+    print("Usage: {} <Process name>".format(sys.argv[0]))
     sys.exit(0)
 
-inj = Injector(sys.argv[1], sys.argv[2])
+inj = Injector(Desktop(backend="win32")[sys.argv[1]])
 sock = inj.socket
 
 while(1):

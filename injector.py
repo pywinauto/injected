@@ -1,29 +1,34 @@
 from pywinauto.handleprops import processid
 from pywinauto.handleprops import is64bitprocess
 from pywinauto.timings import TimeoutError
-from pywinauto import Desktop
 from pywinauto import sysinfo
-from socket import *
+from socket import socket
+from socket import AF_INET
+from socket import SOCK_DGRAM
 import win32event
 import cfuncs
 import ctypes
 import sys
 import os
 
+# Relative path, would be changed after adding to pywinauto
+dll_path = "./dll_to_inject/"
+
 class Injector(object):
 
     """Class for injections dll and set hook on windows messages"""
 
-    def __init__(self, process_name, dll_path, is_unicode = False):
-        """Constructor inject dll, set socket and hook (one process - one class instanse"""
-        self.dll_path = os.path.abspath(dll_path)
-        self.app = Desktop(backend="win32")[process_name]
+    def __init__(self, app, is_unicode = False):
+        """Constructor inject dll, set socket and hook (one application - one class instanse)"""
+        self.app = app
         self.is_unicode = is_unicode
         self.pid = processid(self.app.handle)
+        if not sysinfo.is_x64_Python() == is64bitprocess(self.pid):
+            raise RuntimeError("Application and Python must be both 32-bit or both 64-bit")
         self.h_process = self._get_process_handle(self.pid)
-        if (int(sysinfo.is_x64_Python()) + int(is64bitprocess(self.pid))) % 2 != 0:
-            raise RuntimeError("Application and python version must be same versions (x32 or x64)")
-
+        self.dll_path = os.path.abspath("{0}pywinmsg{1}{2}.dll".format(dll_path,
+            "64" if is64bitprocess(self.pid) else "32",
+            "u" if self.is_unicode else "c"))
         self._inject_dll_to_process()
 
         self.sock = socket(AF_INET, SOCK_DGRAM)
@@ -35,12 +40,12 @@ class Injector(object):
 
     @property
     def socket(self):
-        """Returns datagram socket"""
+        """Return datagram socket"""
         return self.sock
 
     @property
     def application(self):
-        """Returns hooked application"""
+        """Return hooked application"""
         return self.app
 
     def _get_process_handle(self, pid):
@@ -66,13 +71,13 @@ class Injector(object):
         if not cfuncs.WriteProcessMemory(self.h_process, arg_address, ctypes.byref(c_dll_path), ctypes.sizeof(c_dll_path), 0):
             raise AttributeError("Couldn't write data to process memory, check python acceess.")
 
-        # Resolve LoadLibraryA Address
+        # Resolve LoadLibraryA(W) Address
         h_kernel32 = cfuncs.GetModuleHandleW("kernel32.dll") if self.is_unicode else cfuncs.GetModuleHandleA("kernel32.dll")
         h_loadlib = cfuncs.GetProcAddress(h_kernel32, "LoadLibraryW" if self.is_unicode else "LoadLibraryA")
 
-        # Now we createRemoteThread with entrypoiny set to LoadLibraryA and pointer to DLL path as param
+        # Now call createRemoteThread with entry point set to LoadLibraryA(W) and pointer to DLL path as param
         self._create_remote_thread_with_timeout(h_loadlib, arg_address, 1000,
-            "Couldn't create remote thread, application and python version must be same versions (x32 or x64)",
+            "Couldn't create remote thread, application and Python must be both 32-bit or both 64-bit",
             "Inject time out")
 
     def _get_dll_proc_address(self, proc_name):
@@ -86,9 +91,7 @@ class Injector(object):
             raise RuntimeError("Couldn't create remote thread, dll not injected, inject and try again!")
 
     def _remote_call_int_param_func(self, func_name, param):
-        import ctypes
-
-        # resolve paramtype for different applications
+        # Resolve paramtype for different applications
         a = ctypes.c_int64(param) if is64bitprocess(self.pid) else ctypes.c_int32(param)
 
         arg_address = cfuncs.VirtualAllocEx(self.h_process, 0, ctypes.sizeof(a), cfuncs.VIRTUAL_MEM, cfuncs.PAGE_READWRITE)
