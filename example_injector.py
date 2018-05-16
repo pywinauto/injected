@@ -3,7 +3,6 @@ import win32con
 from injector import Injector
 from pywinauto import Desktop
 from ctypes import wintypes
-import win32con
 import ctypes
 
 msg_id_to_key = {getattr(win32con, attr_name): attr_name for attr_name in dir(win32con) if attr_name.startswith('WM_')}

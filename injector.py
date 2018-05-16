@@ -1,14 +1,12 @@
 from pywinauto.handleprops import processid
 from pywinauto.handleprops import is64bitprocess
-from pywinauto.timings import TimeoutError
+from pywinauto.timings import TimeoutError as WaitError
 from pywinauto import sysinfo
 from socket import socket
 from socket import AF_INET
 from socket import SOCK_DGRAM
-import win32event
 import cfuncs
 import ctypes
-import sys
 import os
 
 # Relative path, would be changed after adding to pywinauto
@@ -28,7 +26,7 @@ class Injector(object):
         self.h_process = self._get_process_handle(self.pid)
         self.dll_path = os.path.abspath("{0}pywinmsg{1}{2}.dll".format(dll_path,
             "64" if is64bitprocess(self.pid) else "32",
-            "u" if self.is_unicode else "c"))
+            "u" if self.is_unicode else ""))
         self._inject_dll_to_process()
 
         self.sock = socket(AF_INET, SOCK_DGRAM)
@@ -48,7 +46,8 @@ class Injector(object):
         """Return hooked application"""
         return self.app
 
-    def _get_process_handle(self, pid):
+    @staticmethod
+    def _get_process_handle(pid):
         return cfuncs.OpenProcess(cfuncs.PROCESS_ALL_ACCESS, False, pid)
 
     def _create_remote_thread_with_timeout(self, proc_address, arg_address, timeout_ms = 1000, call_err_text = "", timeout_err_text = ""):
@@ -58,7 +57,7 @@ class Injector(object):
         # TODO: add timeout to pywinauto timings and replace
         ret = cfuncs.WaitForSingleObject(thread_handle, ctypes.wintypes.DWORD(timeout_ms))
         if ret == cfuncs.WAIT_TIMEOUT:
-            raise TimeoutError(timeout_err_text)
+            raise WaitError(timeout_err_text)
 
     def _inject_dll_to_process(self):
         # Get dll path length
