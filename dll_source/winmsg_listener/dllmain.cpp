@@ -20,7 +20,7 @@ LRESULT CALLBACK SysMsgProc(int nCode, WPARAM wParam, LPARAM lParam);
 LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPARAM lParam);
 extern "C" __declspec(dllexport) BOOL Initialize();
 extern "C" __declspec(dllexport) BOOL SetSocketPort(int* port);
-extern "C" __declspec(dllexport) BOOL SetSkipList(int* list);
+extern "C" __declspec(dllexport) BOOL SetApprovedList(int* list);
 extern "C" __declspec(dllexport) HINSTANCE getDllHinstance() {
     return g_hDll;
 }
@@ -215,7 +215,7 @@ BOOL Initialize()
     return TRUE;
 }
 
-BOOL SetSkipList(int* list)
+BOOL SetApprovedList(int* list)
 {
     InjectorManager::instance().parse_skip_list(&list);
     return TRUE;
@@ -231,7 +231,7 @@ LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPARAM lParam)
 
 LRESULT CALLBACK SysMsgProc(int nCode, WPARAM wParam, LPARAM lParam)
 {
-    if (nCode >= 0 && lParam)
+    if (nCode >= 0 && lParam && (((MSG*)lParam)->message == WM_KEYUP || (((MSG*)lParam)->message == WM_QUIT)))
         InjectorManager::instance().send_msg((MSG*)lParam);
 
     return CallNextHookEx(g_hook_handle_sys, nCode, wParam, lParam);
