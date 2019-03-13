@@ -136,7 +136,7 @@ public:
 
     void send_cwp_msg(const CWPSTRUCT* data)
     {
-        MSG msg = { data->hwnd, data->message, data->lParam, data->wParam };
+        MSG msg = { data->hwnd, data->message, data->wParam, data->lParam };
         if (data->message == WM_NOTIFY)
             msg.lParam = ((LPNMHDR)(data->lParam))->code;
 
