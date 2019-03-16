@@ -138,7 +138,11 @@ public:
     {
         MSG msg = { data->hwnd, data->message, data->wParam, data->lParam };
         if (data->message == WM_NOTIFY)
-            msg.lParam = ((LPNMHDR)(data->lParam))->code;
+        {
+            LPNMHDR hdr = (LPNMHDR)(data->lParam);
+            msg.lParam = hdr->code;
+            msg.hwnd = hdr->hwndFrom;
+        }
 
         send_msg(&msg);
     }
