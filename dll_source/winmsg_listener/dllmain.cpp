@@ -19,62 +19,65 @@ BOOL    APIENTRY DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved
 LRESULT CALLBACK SysMsgProc(int nCode, WPARAM wParam, LPARAM lParam);
 LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPARAM lParam);
 extern "C" __declspec(dllexport) BOOL Initialize();
-extern "C" __declspec(dllexport) BOOL SetSocketPort(int* port);
 extern "C" __declspec(dllexport) BOOL SetApprovedList(int* list);
 extern "C" __declspec(dllexport) HINSTANCE getDllHinstance() {
     return g_hDll;
 }
 
-class SocketManager {
+class PipeManager {
     const static size_t m_msg_size = sizeof(MSG);
-    bool                m_socket_initialized = false;
-    int                 m_socket_port = 0;
-    struct sockaddr_in  m_sender_address;
-    SOCKET              m_socket;
+    std::string m_pipe_name = "\\\\.\\pipe\\pywinautorecorderpipe";
+
+    HANDLE m_h_pipe;
+    DWORD  m_access_flags     = GENERIC_READ | GENERIC_WRITE;
+    DWORD  m_no_create_flag   = OPEN_EXISTING;
+    DWORD  m_read_mode_flag   = PIPE_READMODE_MESSAGE;
+    DWORD  m_written_bytes    = 0;
+    bool   m_have_to_close    = false;
+    bool   m_pipe_initialized = false;
 
 public:
-    SocketManager() {}
+    PipeManager() {}
 
-    bool initialize(int port)
+    bool initialize()
     {
-        m_socket_port = port;
-        WSADATA wsaData = {};
-        WSAStartup(MAKEWORD(2, 2), &wsaData);
-        m_socket = socket(AF_INET, SOCK_DGRAM, 0);
-        if (m_socket == INVALID_SOCKET)
+        m_h_pipe = CreateFileA(m_pipe_name.c_str(), m_access_flags, 0, nullptr, m_no_create_flag, 0, nullptr);
+
+        if (m_h_pipe == INVALID_HANDLE_VALUE)
             return false;
 
-        BOOL enabled = TRUE;
-        if (setsockopt(m_socket, SOL_SOCKET, SO_BROADCAST, (char*)&enabled, sizeof(BOOL)) < 0)
+        m_have_to_close = true;
+
+        if (GetLastError() == ERROR_PIPE_BUSY)
             return false;
 
-        m_sender_address.sin_family = AF_INET;
-        m_sender_address.sin_port = htons(m_socket_port);
-        m_sender_address.sin_addr.s_addr = inet_addr("localhost");
-        m_socket_initialized = true;
+        if (!SetNamedPipeHandleState(m_h_pipe, &m_read_mode_flag, nullptr, nullptr))
+            return false;
+
+        m_pipe_initialized = true;
         return true;
     }
 
-    ~SocketManager()
+    ~PipeManager()
     {
-        if (!m_socket_initialized)
+        if (!m_have_to_close)
             return;
 
-        closesocket(m_socket);
-        WSACleanup();
+        CloseHandle(m_h_pipe);
     }
 
     void send_message(const MSG* msg)
     {
-        if (!m_socket_initialized)
+        if (!m_pipe_initialized)
             return;
 
         std::vector<char> message_buffer(m_msg_size, 0);
         memcpy(message_buffer.data(), msg, m_msg_size);
-        if (sendto(m_socket, message_buffer.data(), (int)m_msg_size, 0, (sockaddr*)&m_sender_address, sizeof(m_sender_address)) < 0)
+        if (!WriteFile(m_h_pipe, message_buffer.data(), static_cast<DWORD>(m_msg_size), &m_written_bytes, nullptr))
         {
-            closesocket(m_socket);
-            m_socket_initialized = false;
+            CloseHandle(m_h_pipe);
+            m_pipe_initialized = false;
+            m_have_to_close = false;
         }
     }
 };
@@ -85,13 +88,13 @@ class InjectorManager {
         undefined = 0,
         success,
         hook_failed,
-        socket_failed,
+        pipe_failed,
     };
 
     bool                            m_hook_stop_thread = false;
     int                             m_socket_port = 0;
     HookStatus                      m_status = undefined;
-    SocketManager                   m_socket_manager;
+    PipeManager                     m_pipe_manager;
     std::set<int>                   m_approved_messages_ids;
     std::unique_ptr<std::thread>    m_hook_thread;
     std::condition_variable         m_hook_cv;
@@ -123,15 +126,11 @@ private:
 public:
     InjectorManager() {}
 
-    void set_socket_port(int port) {
-        m_socket_port = port;
-    }
-
     void send_msg(const MSG* msg)
     {
         std::lock_guard<std::mutex> lg(m_send_mutex);
         if (m_approved_messages_ids.count(msg->message))
-            m_socket_manager.send_message(msg);
+            m_pipe_manager.send_message(msg);
     }
 
     void send_cwp_msg(const CWPSTRUCT* data)
@@ -162,9 +161,9 @@ public:
     void initialize()
     {
         m_hook_thread = std::make_unique<std::thread>([&] {
-            if (!m_socket_manager.initialize(m_socket_port))
+            if (!m_pipe_manager.initialize())
             {
-                m_status = HookStatus::socket_failed;
+                m_status = HookStatus::pipe_failed;
                 return;
             }
 
@@ -184,6 +183,11 @@ public:
     }
 
     ~InjectorManager() {
+
+        MSG msg = {};
+        msg.message = 0xFFFFFFFF;
+        m_pipe_manager.send_message(&msg);
+
         if (g_hook_handle_sys && UnhookWindowsHookEx(g_hook_handle_sys))
             g_hook_handle_sys = nullptr;
 
@@ -205,11 +209,6 @@ BOOL APIENTRY DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
     if (fdwReason == DLL_PROCESS_ATTACH)
         g_hDll = hinstDLL;
 
-    return TRUE;
-}
-
-BOOL SetSocketPort(int* port) {
-    InjectorManager::instance().set_socket_port(*port);
     return TRUE;
 }
 
