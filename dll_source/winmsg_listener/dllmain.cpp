@@ -26,7 +26,7 @@ extern "C" __declspec(dllexport) HINSTANCE getDllHinstance() {
 
 class PipeManager {
     const static size_t m_msg_size = sizeof(MSG);
-    std::string m_pipe_name = "\\\\.\\pipe\\pywinautorecorderpipe";
+    std::string m_pipe_name = "\\\\.\\pipe\\pywinauto_recorder_pipe";
 
     HANDLE m_h_pipe;
     DWORD  m_access_flags     = GENERIC_READ | GENERIC_WRITE;
@@ -234,7 +234,7 @@ LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPARAM lParam)
 
 LRESULT CALLBACK SysMsgProc(int nCode, WPARAM wParam, LPARAM lParam)
 {
-    if (nCode >= 0 && lParam && (((MSG*)lParam)->message == WM_KEYUP || (((MSG*)lParam)->message == WM_QUIT)))
+    if (nCode >= 0 && lParam)
         InjectorManager::instance().send_msg((MSG*)lParam);
 
     return CallNextHookEx(g_hook_handle_sys, nCode, wParam, lParam);
