@@ -1,15 +1,11 @@
 #pragma once
-#define _WINSOCKAPI_
-#define WIN32_LEAN_AND_MEAN
-#include <winsock2.h>
 #include <windows.h>
 #include <thread>
 #include <vector>
 #include <mutex>
 #include <set>
 #include <condition_variable>
-
-#pragma comment (lib, "Ws2_32.lib")
+#include <sstream>
 
 static HHOOK     g_hook_handle_sys = nullptr;
 static HHOOK     g_hook_handle_wnd = nullptr;
@@ -26,7 +22,7 @@ extern "C" __declspec(dllexport) HINSTANCE getDllHinstance() {
 
 class PipeManager {
     const static size_t m_msg_size = sizeof(MSG);
-    std::string m_pipe_name = "\\\\.\\pipe\\pywinauto_recorder_pipe";
+    std::wstring m_pipe_name = L"\\\\.\\pipe\\pywinauto_recorder_pipe";
 
     HANDLE m_h_pipe;
     DWORD  m_access_flags     = GENERIC_READ | GENERIC_WRITE;
@@ -41,8 +37,7 @@ public:
 
     bool initialize()
     {
-        m_h_pipe = CreateFileA(m_pipe_name.c_str(), m_access_flags, 0, nullptr, m_no_create_flag, 0, nullptr);
-
+        m_h_pipe = CreateFileW(m_pipe_name.c_str(), m_access_flags, 0, nullptr, m_no_create_flag, 0, nullptr);
         if (m_h_pipe == INVALID_HANDLE_VALUE)
             return false;
 
@@ -71,9 +66,7 @@ public:
         if (!m_pipe_initialized)
             return;
 
-        std::vector<char> message_buffer(m_msg_size, 0);
-        memcpy(message_buffer.data(), msg, m_msg_size);
-        if (!WriteFile(m_h_pipe, message_buffer.data(), static_cast<DWORD>(m_msg_size), &m_written_bytes, nullptr))
+        if (!WriteFile(m_h_pipe, static_cast<const void*>(msg), static_cast<DWORD>(m_msg_size), &m_written_bytes, nullptr))
         {
             CloseHandle(m_h_pipe);
             m_pipe_initialized = false;
@@ -133,7 +126,7 @@ public:
             m_pipe_manager.send_message(msg);
     }
 
-    void send_cwp_msg(const CWPSTRUCT* data)
+    void send_msg(const CWPSTRUCT* data)
     {
         MSG msg = { data->hwnd, data->message, data->wParam, data->lParam };
         if (data->message == WM_NOTIFY)
@@ -224,18 +217,21 @@ BOOL SetApprovedList(int* list)
     return TRUE;
 }
 
-LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPARAM lParam)
+template<typename M>
+LRESULT HandleWindowMessage(HHOOK hook_handle, int nCode, WPARAM wParam, LPARAM lParam)
 {
     if (nCode >= 0 && lParam)
-        InjectorManager::instance().send_cwp_msg((CWPSTRUCT*)lParam);
+        InjectorManager::instance().send_msg((M*)(lParam));
 
     return CallNextHookEx(g_hook_handle_wnd, nCode, wParam, lParam);
 }
 
+LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPARAM lParam)
+{
+    return HandleWindowMessage<CWPSTRUCT>(g_hook_handle_wnd, nCode, wParam, lParam);
+}
+
 LRESULT CALLBACK SysMsgProc(int nCode, WPARAM wParam, LPARAM lParam)
 {
-    if (nCode >= 0 && lParam)
-        InjectorManager::instance().send_msg((MSG*)lParam);
-
-    return CallNextHookEx(g_hook_handle_sys, nCode, wParam, lParam);
+    return HandleWindowMessage<MSG>(g_hook_handle_sys, nCode, wParam, lParam);
 }
