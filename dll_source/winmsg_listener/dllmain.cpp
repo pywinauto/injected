@@ -85,7 +85,6 @@ class InjectorManager {
     };
 
     bool                            m_hook_stop_thread = false;
-    int                             m_socket_port = 0;
     HookStatus                      m_status = undefined;
     PipeManager                     m_pipe_manager;
     std::set<int>                   m_approved_messages_ids;
