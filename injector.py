@@ -2,10 +2,8 @@ from pywinauto.handleprops import processid
 from pywinauto.handleprops import is64bitprocess
 from pywinauto.timings import TimeoutError as WaitError
 from pywinauto import sysinfo
-from socket import socket
-from socket import AF_INET
-from socket import SOCK_DGRAM
-import cfuncs
+from .channel import Pipe
+from . import cfuncs
 import ctypes
 import os
 
@@ -29,17 +27,8 @@ class Injector(object):
             "u" if self.is_unicode else ""))
         self._inject_dll_to_process()
 
-        self.sock = socket(AF_INET, SOCK_DGRAM)
-        self.sock.bind(('',0))
-        port = self.sock.getsockname()[1]
-
-        self._remote_call_int_param_func("InitSocket", port)
-        self._remote_call_void_func("SetMsgHook")
-
-    @property
-    def socket(self):
-        """Return datagram socket"""
-        return self.sock
+        # self._remote_call_int_param_func("InitSocket", port)
+        # self._remote_call_void_func("SetMsgHook")
 
     @property
     def application(self):
@@ -102,3 +91,50 @@ class Injector(object):
         self._create_remote_thread_with_timeout(proc_address, arg_address, 1000,
             "Couldn't create remote thread, dll not injected, inject and try again!",
             "{0}(int) function call time out".format(func_name))
+
+
+def inject(pid):
+    dll_path = (os.path.dirname(__file__) + os.sep + r'x64\bootstrap.dll').encode('utf-8')
+    #dll_path = rb'D:\repo\pywinauto\dotnetguiauto\Debug\bootstrap.dll'
+
+    h_process = cfuncs.OpenProcess(cfuncs.PROCESS_ALL_ACCESS, False, int(pid))
+    #print(f'{h_process=}')
+    if not h_process:
+        #print('')
+        sys.exit(-1)
+
+    arg_address = cfuncs.VirtualAllocEx(h_process, 0, len(dll_path), cfuncs.VIRTUAL_MEM, cfuncs.PAGE_READWRITE)
+    #print(f'{hex(arg_address)=}')
+
+    cfuncs.WriteProcessMemory(h_process, arg_address, dll_path, len(dll_path), 0)
+    #print(f'{written=}')
+
+    h_kernel32 = cfuncs.GetModuleHandleA(b"kernel32.dll")
+    #print(f'{h_kernel32=}')
+    h_loadlib = cfuncs.GetProcAddress(h_kernel32, b"LoadLibraryA")
+    #print(f'{h_loadlib=}')
+
+    thread_id = ctypes.c_ulong(0)
+
+    if not cfuncs.CreateRemoteThread(
+        h_process,
+        None,
+        0,
+        h_loadlib,
+        arg_address,
+        0,
+        ctypes.byref(thread_id)
+    ):
+        print('err inject')
+
+    #print(f'{thread_id=}')
+
+def create_pipe(pid):
+    pipe = Pipe(f'pywinauto_{pid}')
+    if pipe.connect(n_attempts=1):
+        return pipe
+    else:
+        inject(pid)
+        #print('Inject successful, connecting to the server...')
+        pipe.connect()
+        return pipe
