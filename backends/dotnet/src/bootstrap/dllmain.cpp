@@ -1,34 +1,12 @@
 #include "pch.h"
 
 #pragma comment(lib, "mscoree.lib")
+#pragma comment(lib, "Shlwapi.lib")
 
 extern "C" __declspec(dllexport) int LoadWorkerDll();
+bool initWorkerDllAbsolutePath(HMODULE hCurrentDll, wchar_t* buf, size_t len, const wchar_t* workerDllName);
 
-
-// https://www.drdobbs.com/cpp/logging-in-c/201804215
-class Log
-{
-public:
-    Log() {};
-    virtual ~Log();
-    std::wstringstream& Get();
-protected:
-    std::wstringstream os;
-private:
-    Log(const Log&);
-    Log& operator =(const Log&);
-};
-std::wstringstream& Log::Get()
-{
-    os << "bootstrap dll (" << GetCurrentProcessId() << "): ";
-    return os;
-}
-Log::~Log()
-{
-    os << std::endl;
-    OutputDebugStringW(os.str().c_str());
-}
-
+wchar_t workerDllPath[MAX_PATH] = { 0 };
 
 BOOL APIENTRY DllMain( HMODULE hModule,
                        DWORD  ul_reason_for_call,
@@ -40,14 +18,20 @@ BOOL APIENTRY DllMain( HMODULE hModule,
     case DLL_PROCESS_ATTACH:
     {
         Log().Get() << "DLL_PROCESS_ATTACH";
-        Log().Get() << "create LoadWorkerDll() thread ...";
-        // start LoadWorkerDll()
-        auto Thread = CreateThread(0, 0, (LPTHREAD_START_ROUTINE)LoadWorkerDll, 0, 0, 0);
-        if (!Thread) {
-            Log().Get() << "LoadWorkerDll() thread failed";
+
+        if (!initWorkerDllAbsolutePath(hModule, workerDllPath, sizeof(workerDllPath) / sizeof(wchar_t), L"worker.dll"))
+        {
             return FALSE;
         }
-        Log().Get() << "LoadWorkerDll() thread success";
+        
+        Log().Get() << "create LoadWorkerDll() thread ...";
+        auto Thread = CreateThread(0, 0, (LPTHREAD_START_ROUTINE)LoadWorkerDll, 0, 0, 0);
+        if (!Thread) {
+            Log().Get() << "failed to create LoadWorkerDll() thread";
+            return FALSE;
+        }
+        Log().Get() << "LoadWorkerDll() thread is created";
+
         break;
     }
     case DLL_THREAD_ATTACH:
@@ -70,22 +54,23 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 }
 
 
-void debugPrintLastError() {
-    DWORD dLastError = GetLastError();
-    LPSTR strErrorMessage = NULL;
+bool initWorkerDllAbsolutePath(HMODULE hCurrentDll, wchar_t* buf, size_t len, const wchar_t* workerDllName) {
+    Log().Get() << "getting absolute path to worker dll...";
+    int ret = GetModuleFileNameW(hCurrentDll, buf, (DWORD)len);
+    if (!ret) {
+        Log().LogLastError();
+        Log().Get() << "Error: GetModuleFileNameW failed with " << ret;
+        return false;
+    }
+    Log().Get() << "module path is " << buf;
+    PathRemoveFileSpecW(buf);
+    Log().Get() << "module folder is " << buf;
+    wcscat_s(buf, len, L"\\");
+    wcscat_s(buf, len, workerDllName);
+    Log().Get() << "worker dll path is " << buf;
 
-    FormatMessage(
-        FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_ARGUMENT_ARRAY | FORMAT_MESSAGE_ALLOCATE_BUFFER,
-        NULL,
-        dLastError,
-        0,
-        strErrorMessage,
-        0,
-        NULL);
-
-    Log().Get() << "GetLastError() is " << dLastError << " - " << strErrorMessage;
+    return true;
 }
-
 
 extern "C" __declspec(dllexport) 
 int LoadWorkerDll() {
@@ -104,16 +89,14 @@ int LoadWorkerDll() {
 
                 runtimeHost->Start();
 
+                Log().Get() << "load worker dll and start server - " << workerDllPath;
                 DWORD pReturnValue;
-                // TODO dll path + "worker.dll"
-                const wchar_t* path = L"D:\\repo\\pywinauto\\dotnetguiauto\\x64\\Debug\\worker.dll";
-                Log().Get() << "load worker dll and start server - " << path;
-                int ret = runtimeHost->ExecuteInDefaultAppDomain(path, L"InjectedWorker.Main", L"StartServer", L"", &pReturnValue);
+                int ret = runtimeHost->ExecuteInDefaultAppDomain(workerDllPath, L"InjectedWorker.Main", L"StartServer", L"", &pReturnValue);
                 if (ret == S_OK) {
                     Log().Get() << "worker dll: server is finished";
                 }
                 else {
-                    debugPrintLastError();
+                    Log().LogLastError();
                     Log().Get() << "ExecuteInDefaultAppDomain failed with return value " << ret;
                 }
 
@@ -121,19 +104,19 @@ int LoadWorkerDll() {
                 runtimeHost->Release();
             }
             else {
-                debugPrintLastError();
+                Log().LogLastError();
                 Log().Get() << "GetInterface() failed";
             }
             runtimeInfo->Release();
         }
         else {
-            debugPrintLastError();
+            Log().LogLastError();
             Log().Get() << "GetRuntime() failed";
         }
         metaHost->Release();
     }
     else {
-        debugPrintLastError();
+        Log().LogLastError();
         Log().Get() << "bootstrap: CLRCreateInstance() failed";
     }
 
