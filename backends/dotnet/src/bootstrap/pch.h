@@ -14,10 +14,14 @@
 #include <string>
 #include <sstream>
 
-#include <windows.h>
+#include <shlwapi.h>
+
 #include <MSCorEE.h>
 #include <metahost.h>
 #include <corerror.h>
+
+
+#include "Log.h"
 
 
 #endif //PCH_H
