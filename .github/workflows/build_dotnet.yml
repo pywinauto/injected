@@ -1,0 +1,37 @@
+name: Build DotNET backend
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  build:
+    runs-on: windows-2019
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Configure CMake
+      working-directory: ${{github.workspace}}/backends/dotnet
+      run: |
+        mkdir build32
+        cmake  -G "Visual Studio 16 2019" -A Win32 -B ${{github.workspace}}/backends/dotnet/build32
+        mkdir build64
+        cmake  -G "Visual Studio 16 2019" -A x64 -B ${{github.workspace}}/backends/dotnet/build64
+        
+
+    - name: Build
+      working-directory: ${{github.workspace}}/backends/dotnet
+      run: |
+        cmake --build ./build32 --target install --config ${{env.BUILD_TYPE}}
+        cmake --build ./build64 --target install --config ${{env.BUILD_TYPE}}
+      
+    - name: Collecting artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: dotnet_bin
+        path: backends/dotnet/bin
