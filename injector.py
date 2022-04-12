@@ -5,16 +5,15 @@ from pywinauto.handleprops import is64bitprocess
 from pywinauto.timings import TimeoutError as WaitError
 from pywinauto import sysinfo
 
-from .channel import Pipe
 from . import cfuncs
 
 
 class Injector(object):
 
-    """Class for injections dll and set hook on windows messages"""
+    """Class for injections dll"""
 
     def __init__(self, pid, backend_name, dll_name, is_unicode = False):
-        """Constructor inject dll, set socket and hook (one application - one class instanse)"""
+        """Constructor inject dll (one application - one class instanse)"""
         self.is_unicode = is_unicode
         self.pid = pid
         if not sysinfo.is_x64_Python() == is64bitprocess(self.pid):
@@ -89,12 +88,3 @@ class Injector(object):
         self._create_remote_thread_with_timeout(proc_address, arg_address, 1000,
             "Couldn't create remote thread, dll not injected, inject and try again!",
             "{0}(int) function call time out".format(func_name))
-
-def create_pipe(pid):
-    pipe = Pipe(f'pywinauto_{pid}')
-    if pipe.connect(n_attempts=1):
-        return pipe
-    else:
-        injected_bootstrap = Injector(pid, 'dotnet', 'bootstrap')
-        pipe.connect()
-        return pipe
