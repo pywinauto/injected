@@ -19,7 +19,7 @@ BOOL APIENTRY DllMain( HMODULE hModule,
     {
         Log().Get() << "DLL_PROCESS_ATTACH";
 
-        if (!initWorkerDllAbsolutePath(hModule, workerDllPath, sizeof(workerDllPath) / sizeof(wchar_t), L"worker.dll"))
+        if (!initWorkerDllAbsolutePath(hModule, workerDllPath, sizeof(workerDllPath) / sizeof(wchar_t), L"worker_wpf.dll"))
         {
             return FALSE;
         }
