@@ -225,4 +225,44 @@ namespace InjectedWorker.WPF
         }
     }
 
+    class WPFGetControlType : GetControlType<DependencyObject>
+    {
+        public WPFGetControlType()
+        {
+            this.DefaultType = "Custom";
+
+            this.KnownTypes.Add(typeof(System.Windows.Window), "Window");
+            this.KnownTypes.Add(typeof(System.Windows.Controls.Canvas), "Pane");
+            this.KnownTypes.Add(typeof(System.Windows.Controls.ToolBar), "ToolBar");
+            this.KnownTypes.Add(typeof(System.Windows.Controls.Menu), "Menu");
+            this.KnownTypes.Add(typeof(System.Windows.Controls.MenuItem), "MenuItem");
+            this.KnownTypes.Add(typeof(System.Windows.Controls.TabControl), "TabControl");
+            this.KnownTypes.Add(typeof(System.Windows.Controls.TabItem), "TabItem");
+            this.KnownTypes.Add(typeof(System.Windows.Controls.TreeView), "TreeView");
+            this.KnownTypes.Add(typeof(System.Windows.Controls.TreeViewItem), "TreeItem");
+            this.KnownTypes.Add(typeof(System.Windows.Controls.ListBox), "ListBox");
+            this.KnownTypes.Add(typeof(System.Windows.Controls.ListBoxItem), "ListItem");
+            this.KnownTypes.Add(typeof(System.Windows.Controls.DataGrid), "DataGrid");
+            this.KnownTypes.Add(typeof(System.Windows.Controls.Label), "Static");
+            this.KnownTypes.Add(typeof(System.Windows.Controls.Button), "Button");
+            this.KnownTypes.Add(typeof(System.Windows.Controls.TextBox), "Edit");
+            this.KnownTypes.Add(typeof(System.Windows.Controls.ScrollViewer), "ScrollBar");
+            this.KnownTypes.Add(typeof(System.Windows.Controls.CheckBox), "CheckBox");
+            this.KnownTypes.Add(typeof(System.Windows.Controls.RadioButton), "RadioButton");
+            this.KnownTypes.Add(typeof(System.Windows.Controls.PasswordBox), "Edit");
+            this.KnownTypes.Add(typeof(System.Windows.Controls.RichTextBox), "Document");
+            this.KnownTypes.Add(typeof(System.Windows.Controls.Slider), "Slider");
+        }
+
+        public override Reply Run<T>(ControlsStorage<T> controls, IDictionary<string, dynamic> args)
+        {
+            CheckParamExists(args, "element_id");
+            CheckValidControlId<T>(args["element_id"], controls);
+
+            object c = controls.GetControl(args["element_id"]);
+            DynamicValueReply reply = new DynamicValueReply(FindControlType(c));
+            return reply;
+        }
+    }
+
 }
