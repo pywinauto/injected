@@ -13,6 +13,7 @@ namespace InjectedWorker.WPF
             RegisterAction(new WPFGetRectangle());
             RegisterAction(new WPFGetHandle());
             RegisterAction(new WPFGetParent());
+            RegisterAction(new WPFGetControlType());
         }
 
         // TODO RunOnUiThread method

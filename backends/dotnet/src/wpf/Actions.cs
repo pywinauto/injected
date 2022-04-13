@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace InjectedWorker
 {
@@ -87,14 +88,34 @@ namespace InjectedWorker
             CheckValidControlId<T>(args["element_id"], controls);
 
             object c = controls.GetControl(args["element_id"]);
-            if (c == null)
-                throw new ErrorReplyException(ErrorCodes.NOT_FOUND, "element not found: " + args["element_id"]);
-            else
-            {
-                DynamicValueReply reply = new DynamicValueReply(c.GetType().ToString());
-                return reply;
-            }
+            DynamicValueReply reply = new DynamicValueReply(c.GetType().ToString());
+            return reply;
         }
+    }
+
+    internal abstract class GetControlType<T> : ActionBase
+    {
+        protected Dictionary<Type, string> KnownTypes = new Dictionary<Type, string>();
+        protected string DefaultType = "Custom";
+
+        public override string Name
+        {
+            get { return "GetControlType"; }
+        }
+
+        protected string FindControlType(object obj)
+        {
+            // traverse inheritance hierarchy of given object
+            for (Type t = obj.GetType(); t != null; t = t.BaseType)
+            {
+                if (KnownTypes.ContainsKey(t))
+                {
+                    return KnownTypes[t];
+                }
+            }
+            return DefaultType;
+        }
+
     }
 
 }
