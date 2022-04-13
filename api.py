@@ -51,8 +51,9 @@ class ConnectionManager(object):
             return pipe
     
     def call_action(self, action_name, pid, **params):
-        command = json.dumps({'action': action_name, **params})
-        reply = self._get_pipe(pid).transact(command)
+        command = {'action': action_name}
+        command.update(params)
+        reply = self._get_pipe(pid).transact(json.dumps(command))
         reply = json.loads(reply)
 
         if reply['status_code'] == UNSUPPORTED_ACTION:
