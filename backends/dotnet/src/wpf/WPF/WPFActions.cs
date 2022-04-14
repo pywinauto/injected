@@ -232,7 +232,7 @@ namespace InjectedWorker.WPF
             this.DefaultType = "Custom";
 
             this.KnownTypes.Add(typeof(System.Windows.Window), "Window");
-            this.KnownTypes.Add(typeof(System.Windows.Controls.Canvas), "Pane");
+            this.KnownTypes.Add(typeof(System.Windows.Controls.Panel), "Pane");
             this.KnownTypes.Add(typeof(System.Windows.Controls.ToolBar), "ToolBar");
             this.KnownTypes.Add(typeof(System.Windows.Controls.Menu), "Menu");
             this.KnownTypes.Add(typeof(System.Windows.Controls.MenuItem), "MenuItem");
@@ -262,6 +262,11 @@ namespace InjectedWorker.WPF
             object c = controls.GetControl(args["element_id"]);
             DynamicValueReply reply = new DynamicValueReply(FindControlType(c));
             return reply;
+        }
+
+        protected override string FindControlType(object obj)
+        {
+            return base.FindControlType(obj);
         }
     }
 
