@@ -88,7 +88,7 @@ namespace InjectedWorker
             CheckValidControlId<T>(args["element_id"], controls);
 
             object c = controls.GetControl(args["element_id"]);
-            DynamicValueReply reply = new DynamicValueReply(c.GetType().ToString());
+            DynamicValueReply reply = new DynamicValueReply(c.GetType().Name);
             return reply;
         }
     }
