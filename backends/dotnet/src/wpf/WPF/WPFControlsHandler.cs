@@ -14,6 +14,8 @@ namespace InjectedWorker.WPF
             RegisterAction(new WPFGetHandle());
             RegisterAction(new WPFGetParent());
             RegisterAction(new WPFGetControlType());
+            RegisterAction(new WPFGetFocusedElement());
+            RegisterAction(new WPFSetFocus());
         }
 
         // TODO RunOnUiThread method

@@ -66,5 +66,7 @@ class ConnectionManager(object):
             raise TargetRuntimeError(reply['message'])
         elif reply['status_code'] == NOT_FOUND:
             raise NotFoundError(reply['message'])
+        elif reply['status_code'] != OK:
+            raise InjectedBackendError()
 
         return reply

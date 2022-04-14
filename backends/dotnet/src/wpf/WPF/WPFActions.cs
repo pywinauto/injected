@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Interop;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Reflection;
 
@@ -269,5 +270,53 @@ namespace InjectedWorker.WPF
             return base.FindControlType(obj);
         }
     }
+
+    class WPFGetFocusedElement : GetFocusedElement<DependencyObject>
+    {
+        public override Reply Run<T>(ControlsStorage<T> controls, IDictionary<string, dynamic> args)
+        {
+            DynamicValueReply reply = new DynamicValueReply(-1);
+
+            // In WPF there are two main concepts that pertain to focus: keyboard focus and logical focus.
+            // Keyboard focus is used here (more: https://docs.microsoft.com/en-us/dotnet/desktop/wpf/advanced/focus-overview?view=netframeworkdesktop-4.8)
+            IInputElement inputElem = null;
+            Application.Current.Dispatcher.Invoke((Action)delegate
+            {
+                inputElem = Keyboard.FocusedElement;
+            });
+
+            if (inputElem != null && inputElem is DependencyObject)
+            {
+                DependencyObject focusedElem = inputElem as DependencyObject;
+                reply = new DynamicValueReply((controls as ControlsStorage<DependencyObject>).RegisterControl(focusedElem));
+            }
+
+            return reply;
+        }
+    }
+
+    class WPFSetFocus : SetFocus<DependencyObject>
+    {
+        public override Reply Run<T>(ControlsStorage<T> controls, IDictionary<string, dynamic> args)
+        {
+            CheckParamExists(args, "element_id");
+            CheckValidControlId<T>(args["element_id"], controls);
+
+            dynamic c = controls.GetControl(args["element_id"]);
+
+            if (!(c is IInputElement))
+            {
+                throw new ErrorReplyException(ErrorCodes.UNSUPPORTED_ACTION, String.Format("Can not cast element with ID {0} to IInputElement. Not focusable?", args["element_id"]));
+            }
+            Application.Current.Dispatcher.Invoke((Action)delegate
+            {
+                Keyboard.Focus(c as IInputElement);
+            });
+
+            Reply reply = new Reply(ErrorCodes.OK);
+            return reply;
+        }
+    }
+
 
 }
