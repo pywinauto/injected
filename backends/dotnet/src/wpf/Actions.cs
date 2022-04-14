@@ -103,7 +103,7 @@ namespace InjectedWorker
             get { return "GetControlType"; }
         }
 
-        protected string FindControlType(object obj)
+        protected virtual string FindControlType(object obj)
         {
             // traverse inheritance hierarchy of given object
             for (Type t = obj.GetType(); t != null; t = t.BaseType)
@@ -117,6 +117,8 @@ namespace InjectedWorker
         }
 
     }
+
+
 
 }
 
