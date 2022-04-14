@@ -118,6 +118,21 @@ namespace InjectedWorker
 
     }
 
+    internal abstract class GetFocusedElement<T> : ActionBase
+    {
+        public override string Name
+        {
+            get { return "GetFocusedElement"; }
+        }
+    }
+
+    internal abstract class SetFocus<T> : ActionBase
+    {
+        public override string Name
+        {
+            get { return "SetFocus"; }
+        }
+    }
 
 
 }
