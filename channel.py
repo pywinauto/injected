@@ -27,12 +27,12 @@ class Pipe(object):
                     0,
                     None
                 )
-                ret = win32pipe.SetNamedPipeHandleState(
-                        self.handle,
-                        win32pipe.PIPE_READMODE_MESSAGE | win32pipe.PIPE_WAIT,
-                        None,
-                        None,
-                    )
+                win32pipe.SetNamedPipeHandleState(
+                    self.handle,
+                    win32pipe.PIPE_READMODE_MESSAGE | win32pipe.PIPE_WAIT,
+                    None,
+                    None,
+                )
                 ActionLogger().log('Connected to the pipe {}'.format(self.name))
                 break
             except pywintypes.error as e:
@@ -57,7 +57,6 @@ class Pipe(object):
                 raise BrokenPipeError("Broken pipe")
             else:
                 raise BrokenPipeError('Unexpected pipe error: {}'.format(e))
-            return ''
 
     def close(self):
         win32file.CloseHandle(self.handle)
