@@ -8,7 +8,7 @@ namespace InjectedWorker
 {
     public class Main
     {
-        private static WPF.WPFControlsHandler Handler = new WPF.WPFControlsHandler();
+        private static IRequestHandler Handler = new WPF.WPFControlsHandler();
 
         public static int StartServer(string arg)
         {

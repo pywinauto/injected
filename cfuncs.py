@@ -3,18 +3,18 @@ injector work needs full redefinition with ctypes compatible
 """
 
 import ctypes
+import win32con
 from ctypes.wintypes import BOOL
 from ctypes.wintypes import DWORD
 from ctypes.wintypes import HANDLE
 from ctypes.wintypes import LPVOID
 from ctypes.wintypes import LPCVOID
 from pywinauto.windows.win32structures import SECURITY_ATTRIBUTES
-from pywinauto.windows import win32defines
 
-PAGE_READWRITE = win32defines.PAGE_READWRITE
-WAIT_TIMEOUT = win32defines.WAIT_TIMEOUT
-PROCESS_ALL_ACCESS = win32defines.PROCESS_ALL_ACCESS
-VIRTUAL_MEM = ( win32defines.MEM_RESERVE | win32defines.MEM_COMMIT )
+PAGE_READWRITE = win32con.PAGE_READWRITE
+WAIT_TIMEOUT = win32con.WAIT_TIMEOUT
+PROCESS_ALL_ACCESS = win32con.PROCESS_ALL_ACCESS
+VIRTUAL_MEM = ( win32con.MEM_RESERVE | win32con.MEM_COMMIT )
 LPCSTR = LPCTSTR = ctypes.c_char_p
 LPWTSTR = ctypes.c_wchar_p
 LPDWORD = PDWORD = ctypes.POINTER(DWORD)

@@ -6,6 +6,11 @@ using System.Runtime.ExceptionServices;
 
 namespace InjectedWorker
 {
+    interface IRequestHandler
+    {
+        string ProcessRequest(string jsonRequest);
+    }
+
     class ControlsStorage<T>
         where T : class
     {
@@ -34,7 +39,7 @@ namespace InjectedWorker
         }
     }
 
-    abstract class ControlsHandlerBase<T>
+    abstract class ControlsHandlerBase<T> : IRequestHandler
         where T : class
     {
         private Dictionary<string, ActionBase> RegisteredActions = new Dictionary<string, ActionBase>();
