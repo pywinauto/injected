@@ -1,6 +1,5 @@
 import ctypes
 import os
-from pywinauto.handleprops import processid
 from pywinauto.handleprops import is64bitprocess
 from pywinauto.timings import TimeoutError as WaitError
 from pywinauto import sysinfo

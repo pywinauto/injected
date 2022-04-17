@@ -50,7 +50,7 @@ class ConnectionManager(object):
             return pipe
         else:
             ActionLogger().log('Pipe {} not found, injecting dll to the process'.format(pipe_name))
-            injected_bootstrap = Injector(pid, 'dotnet', 'bootstrap')
+            Injector(pid, 'dotnet', 'bootstrap')
             pipe.connect()
             return pipe
     
