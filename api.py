@@ -7,25 +7,29 @@ from .injector import Injector
 from .channel import Pipe
 
 # backend exit codes enum
-OK=0
-PARSE_ERROR=1
-UNSUPPORTED_ACTION=2
-MISSING_PARAM=3
-RUNTIME_ERROR=4
-NOT_FOUND=5
-UNSUPPORTED_TYPE=6
+OK = 0
+PARSE_ERROR = 1
+UNSUPPORTED_ACTION = 2
+MISSING_PARAM = 3
+RUNTIME_ERROR = 4
+NOT_FOUND = 5
+UNSUPPORTED_TYPE = 6
+INVALID_VALUE = 7
 
-class InjectedBackendError(Exception):
-    """Base class for exceptions on the injected backend side"""
+class InjectedTargetError(Exception):
+    """Base class for exceptions based on errors returned from injected DLL side"""
     pass
 
-class UnsupportedActionError(InjectedBackendError):
+class UnsupportedActionError(InjectedTargetError):
+    """The specified action is not supported"""
     pass
 
-class BackendRuntimeError(InjectedBackendError):
+class TargetRuntimeError(InjectedTargetError):
+    """Runtime exception during code execution inside injected target"""
     pass
 
-class NotFoundError(InjectedBackendError):
+class NotFoundError(InjectedTargetError):
+    """Requested item not found: control element, property, ..."""
     pass
 
 @six.add_metaclass(Singleton)
@@ -59,7 +63,7 @@ class ConnectionManager(object):
         if reply['status_code'] == UNSUPPORTED_ACTION:
             raise UnsupportedActionError(reply['message'])
         elif reply['status_code'] == RUNTIME_ERROR:
-            raise BackendRuntimeError(reply['message'])
+            raise TargetRuntimeError(reply['message'])
         elif reply['status_code'] == NOT_FOUND:
             raise NotFoundError(reply['message'])
 

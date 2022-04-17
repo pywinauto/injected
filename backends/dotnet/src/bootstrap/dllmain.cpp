@@ -72,6 +72,17 @@ bool initWorkerDllAbsolutePath(HMODULE hCurrentDll, wchar_t* buf, size_t len, co
     return true;
 }
 
+/* The code below is inspired by these articles:
+* https://web.archive.org/web/20101224064236/http:/codingthewheel.com/archives/how-to-inject-a-managed-assembly-dll
+* https://blog.adamfurmanek.pl/2016/04/16/dll-injection-part-4/
+* https://www.unknowncheats.me/forum/general-programming-and-reversing/332825-inject-net-dll-using-clr-hosting.html
+* 
+* Some useful info about the compatibility with .NET versions can be found here:
+* https://stackoverflow.com/questions/6275693/what-governs-the-version-of-the-net-clr-that-gets-loaded-by-corbindtoruntimeex
+* https://docs.microsoft.com/en-us/dotnet/framework/unmanaged-api/hosting/corbindtoruntimeex-function
+* https://docs.microsoft.com/en-us/previous-versions/dotnet/netframework-4.0/01918c6x(v=vs.100)?redirectedfrom=MSDN
+* https://stackoverflow.com/questions/20338895/replacement-equivalent-for-the-corbindtoruntimeex-function
+*/
 extern "C" __declspec(dllexport) 
 int LoadWorkerDll() {
     Log().Get() << "LoadWorkerDll() called";
@@ -100,7 +111,6 @@ int LoadWorkerDll() {
                     Log().Get() << "ExecuteInDefaultAppDomain failed with return value " << ret;
                 }
 
-                //OPTIONAL: You can keep the CLR Opened depending on your needs
                 runtimeHost->Release();
             }
             else {
@@ -123,14 +133,4 @@ int LoadWorkerDll() {
     return 0;
 }
 
-
-
-
-
-/*
-
-https://stackoverflow.com/questions/6275693/what-governs-the-version-of-the-net-clr-that-gets-loaded-by-corbindtoruntimeex
-https://docs.microsoft.com/en-us/dotnet/framework/unmanaged-api/hosting/corbindtoruntimeex-function
-https://docs.microsoft.com/en-us/previous-versions/dotnet/netframework-4.0/01918c6x(v=vs.100)?redirectedfrom=MSDN
-https://stackoverflow.com/questions/20338895/replacement-equivalent-for-the-corbindtoruntimeex-function
-*/
+// TODO add functions to enable/disable logging, set log level, unload dlls
