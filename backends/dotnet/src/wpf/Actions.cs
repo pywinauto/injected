@@ -134,6 +134,13 @@ namespace InjectedWorker
         }
     }
 
+    internal abstract class GetName<T> : ActionBase
+    {
+        public override string Name
+        {
+            get { return "GetName"; }
+        }
+    }
 
 }
 
