@@ -64,6 +64,20 @@ namespace InjectedWorker.WPF
             return ret;
         }
 
+        public List<long> GetChildrenOf(HeaderedContentControl o)
+        {
+            List<long> ret = null;
+            Application.Current.Dispatcher.Invoke((Action)delegate
+            {
+                ret = new List<long>();
+                if (o.Header is DependencyObject)
+                    ret.Add(ControlsStrorage.RegisterControl(o.Header as DependencyObject));
+                if (o.Content is DependencyObject)
+                    ret.Add(ControlsStrorage.RegisterControl(o.Content as DependencyObject));
+            });
+            return ret;
+        }
+
         public List<long> GetChildrenOf(ContentControl o)
         {
             List<long> ret = null;
@@ -72,6 +86,23 @@ namespace InjectedWorker.WPF
                 ret = new List<long>();
                 if (o.Content is DependencyObject)
                     ret.Add(ControlsStrorage.RegisterControl(o.Content as DependencyObject));
+            });
+            return ret;
+        }
+
+        public List<long> GetChildrenOf(HeaderedItemsControl o)
+        {
+            List<long> ret = null;
+            Application.Current.Dispatcher.Invoke((Action)delegate
+            {
+                ret = new List<long>();
+                if (o.Header is DependencyObject)
+                    ret.Add(ControlsStrorage.RegisterControl(o.Header as DependencyObject));
+                foreach (var item in o.Items)
+                {
+                    if (item is DependencyObject)
+                        ret.Add(ControlsStrorage.RegisterControl(item as DependencyObject));
+                }
             });
             return ret;
         }
@@ -246,6 +277,7 @@ namespace InjectedWorker.WPF
             this.KnownTypes.Add(typeof(System.Windows.Controls.DataGrid), "DataGrid");
             this.KnownTypes.Add(typeof(System.Windows.Controls.Label), "Static");
             this.KnownTypes.Add(typeof(System.Windows.Controls.Button), "Button");
+            this.KnownTypes.Add(typeof(System.Windows.Controls.Primitives.ToggleButton), "Button");
             this.KnownTypes.Add(typeof(System.Windows.Controls.TextBox), "Edit");
             this.KnownTypes.Add(typeof(System.Windows.Controls.ScrollViewer), "ScrollBar");
             this.KnownTypes.Add(typeof(System.Windows.Controls.CheckBox), "CheckBox");
@@ -318,5 +350,88 @@ namespace InjectedWorker.WPF
         }
     }
 
+    class WPFGetName : GetName<DependencyObject>
+    {
+        public override Reply Run<T>(ControlsStorage<T> controls, IDictionary<string, dynamic> args)
+        {
+            CheckParamExists(args, "element_id");
+            CheckValidControlId<T>(args["element_id"], controls);
+
+            dynamic c = controls.GetControl(args["element_id"]);
+            DynamicValueReply reply = null;
+            Application.Current.Dispatcher.Invoke((Action)delegate
+            {
+                reply = new DynamicValueReply(GetNameString(c));
+            });
+            return reply;
+        }
+
+        protected virtual string GetNameString(object o)
+        {
+            if (o == null)
+            {
+                return "";
+            }
+            return o.ToString();
+        }
+
+        protected virtual string GetNameString(DependencyObject c)
+        {
+            foreach (string name in new List<string> { "Title" })
+            {
+                PropertyInfo prop = c.GetType().GetProperty(name);
+                FieldInfo field = c.GetType().GetField(name);
+                if (prop != null)
+                {
+                    return prop.GetValue(c, null).ToString();
+                }
+                else if (field != null)
+                {
+                    return field.GetValue(c).ToString();
+                }
+            }
+            return "";
+        }
+
+        protected virtual string GetNameString(Window o)
+        {
+            if (o.Title == null)
+            {
+                return "";
+            }
+            return o.Title;
+        }
+
+
+        protected virtual string GetNameString(ContentControl o)
+        {
+            if (o.Content == null)
+            {
+                return "";
+            }
+            dynamic source = o.Content;
+            return GetNameString(source);
+        }
+
+        protected virtual string GetNameString(HeaderedContentControl o)
+        {
+            if (o.Header == null)
+            {
+                return "";
+            }
+            dynamic source = o.Header;
+            return GetNameString(source);
+        }
+
+        protected virtual string GetNameString(HeaderedItemsControl o)
+        {
+            if (o.Header == null)
+            {
+                return "";
+            }
+            dynamic source = o.Header;
+            return GetNameString(source);
+        }
+    }
 
 }
