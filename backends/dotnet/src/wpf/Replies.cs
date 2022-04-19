@@ -47,10 +47,13 @@ namespace InjectedWorker
         }
         protected void Serialize(Rect rect)
         {
-            Fields["left"] = (int)rect.Left;
-            Fields["right"] = (int)rect.Right;
-            Fields["top"] = (int)rect.Top;
-            Fields["bottom"] = (int)rect.Bottom;
+            Dictionary<string, dynamic> rectangle = new Dictionary<string, dynamic>();
+            rectangle["left"] = (int)rect.Left;
+            rectangle["right"] = (int)rect.Right;
+            rectangle["top"] = (int)rect.Top;
+            rectangle["bottom"] = (int)rect.Bottom;
+
+            Fields["value"] = rectangle;
         }
 
     }

@@ -193,6 +193,52 @@ namespace InjectedWorker.WPF
         }
     }
 
+    class WPFSetProperty : SetProperty<DependencyObject>
+    {
+        public override Reply Run<T>(ControlsStorage<T> controls, IDictionary<string, dynamic> args)
+        {
+            CheckParamExists(args, "element_id");
+            CheckValidControlId<T>(args["element_id"], controls);
+            CheckParamExists(args, "name");
+            CheckParamExists(args, "value");
+
+            object c = controls.GetControl(args["element_id"]);
+
+            bool isExists = false;
+
+            Application.Current.Dispatcher.Invoke((Action)delegate
+            {
+                PropertyInfo prop = c.GetType().GetProperty(args["name"]);
+                FieldInfo field = c.GetType().GetField(args["name"]);
+                if (prop != null)
+                {
+                    isExists = true;
+
+                    dynamic value = args["value"];
+                    if (args.ContainsKey("is_enum") && args["is_enum"])
+                    {
+                        value = Enum.Parse(prop.PropertyType, args["value"]);
+                    }
+                    prop.SetValue(c, value, null);
+                }
+                else if (field != null)
+                {
+                    isExists = true;
+                    dynamic value = args["value"];
+                    if (args.ContainsKey("is_enum") && args["is_enum"])
+                    {
+                        value = Enum.Parse(field.FieldType, args["value"]);
+                    }
+                    field.SetValue(c, value);
+                }
+            });
+            if (isExists)
+                return new Reply(ErrorCodes.OK);
+            else
+                throw new ErrorReplyException(ErrorCodes.NOT_FOUND, "no such field or property: " + args["name"]);
+        }
+    }
+
     class WPFGetRectangle : GetRectangle<DependencyObject>
     {
         public override Reply Run<T>(ControlsStorage<T> controls, IDictionary<string, dynamic> args)
@@ -217,6 +263,16 @@ namespace InjectedWorker.WPF
                     Point topLeft = control.PointToScreen(new Point(0, 0));
                     rect = new Rect(topLeft.X, topLeft.Y, control.ActualWidth, control.ActualHeight);
                 }
+            });
+            return rect;
+        }
+
+        protected Rect GetRect(Window control)
+        {
+            Rect rect = new Rect(0, 0, 0, 0);
+            Application.Current.Dispatcher.Invoke((Action)delegate
+            {
+                rect = new Rect(control.Left, control.Top, control.ActualWidth, control.ActualHeight);
             });
             return rect;
         }
@@ -431,6 +487,28 @@ namespace InjectedWorker.WPF
             }
             dynamic source = o.Header;
             return GetNameString(source);
+        }
+    }
+
+    class WPFInvokeMethod : InvokeMethod<DependencyObject>
+    {
+        public override Reply Run<T>(ControlsStorage<T> controls, IDictionary<string, dynamic> args)
+        {
+            CheckParamExists(args, "element_id");
+            CheckValidControlId<T>(args["element_id"], controls);
+            CheckParamExists(args, "name");
+
+            object c = controls.GetControl(args["element_id"]);
+
+            // TODO params support (array of pairs function_type-value?)
+            MethodInfo method = c.GetType().GetMethod(args["name"]);
+
+            dynamic ret = null;
+            Application.Current.Dispatcher.Invoke((Action)delegate
+            {
+                ret = method.Invoke(c, null);
+            });
+            return new DynamicValueReply(ret);
         }
     }
 

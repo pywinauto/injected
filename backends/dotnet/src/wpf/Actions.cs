@@ -67,6 +67,14 @@ namespace InjectedWorker
         }
     }
 
+    internal abstract class SetProperty<T> : ActionBase
+    {
+        public override string Name
+        {
+            get { return "SetProperty"; }
+        }
+    }
+
     internal abstract class GetHandle<T> : ActionBase
     {
         public override string Name
@@ -139,6 +147,14 @@ namespace InjectedWorker
         public override string Name
         {
             get { return "GetName"; }
+        }
+    }
+
+    internal abstract class InvokeMethod<T> : ActionBase
+    {
+        public override string Name
+        {
+            get { return "InvokeMethod"; }
         }
     }
 
