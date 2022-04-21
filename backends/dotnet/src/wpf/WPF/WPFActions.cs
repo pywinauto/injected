@@ -219,6 +219,15 @@ namespace InjectedWorker.WPF
                     {
                         value = Enum.Parse(prop.PropertyType, args["value"]);
                     }
+
+                    try
+                    {
+                        value = Convert.ChangeType(value, prop.PropertyType);
+                    } 
+                    catch (Exception e)
+                    {
+                        throw new ErrorReplyException(ErrorCodes.UNSUPPORTED_TYPE, "can not convert to property type: " + e.ToString());
+                    }
                     prop.SetValue(c, value, null);
                 }
                 else if (field != null)
@@ -229,6 +238,16 @@ namespace InjectedWorker.WPF
                     {
                         value = Enum.Parse(field.FieldType, args["value"]);
                     }
+
+                    try
+                    {
+                        value = Convert.ChangeType(value, field.FieldType);
+                    }
+                    catch (Exception e)
+                    {
+                        throw new ErrorReplyException(ErrorCodes.UNSUPPORTED_TYPE, "can not convert to field type: " + e.ToString());
+                    }
+
                     field.SetValue(c, value);
                 }
             });
@@ -331,6 +350,7 @@ namespace InjectedWorker.WPF
             this.KnownTypes.Add(typeof(System.Windows.Controls.ListBox), "ListBox");
             this.KnownTypes.Add(typeof(System.Windows.Controls.ListBoxItem), "ListItem");
             this.KnownTypes.Add(typeof(System.Windows.Controls.DataGrid), "DataGrid");
+            this.KnownTypes.Add(typeof(System.Windows.Controls.ComboBox), "ComboBox");
             this.KnownTypes.Add(typeof(System.Windows.Controls.Label), "Text");
             this.KnownTypes.Add(typeof(System.Windows.Controls.Button), "Button");
             this.KnownTypes.Add(typeof(System.Windows.Controls.Primitives.ToggleButton), "Button");
@@ -521,10 +541,6 @@ namespace InjectedWorker.WPF
             CheckParamExists(args, "name");
 
             object c = controls.GetControl(args["element_id"]);
-
-            // (c as Button).RaiseEvent(new RoutedEventArgs(Button.ClickEvent))
-            // System.Windows.EventManager.GetRoutedEventsForOwner(c.GetType().BaseType)
-            //.FirstOrDefault();
 
             if (!(c is UIElement))
             {
