@@ -19,6 +19,7 @@ namespace InjectedWorker.WPF
             RegisterAction(new WPFSetFocus());
             RegisterAction(new WPFGetName());
             RegisterAction(new WPFInvokeMethod());
+            RegisterAction(new WPFRaiseEvent());
 
         }
 
