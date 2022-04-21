@@ -158,6 +158,14 @@ namespace InjectedWorker
         }
     }
 
+    internal abstract class RaiseEvent<T> : ActionBase
+    {
+        public override string Name
+        {
+            get { return "RaiseEvent"; }
+        }
+    }
+
 }
 
 
