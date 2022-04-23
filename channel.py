@@ -3,7 +3,6 @@ import time
 import win32file
 import win32pipe
 import winerror
-import sys
 from pywinauto.actionlogger import ActionLogger
 
 
@@ -51,7 +50,7 @@ class Pipe(object):
             win32file.WriteFile(self.handle, string.encode('utf-8'))
             win32file.FlushFileBuffers(self.handle)
             resp = win32file.ReadFile(self.handle, 64 * 1024)
-            return resp[1].decode(sys.getdefaultencoding())
+            return resp[1].decode('utf-8')
         except pywintypes.error as e:
             if e.args[0] == winerror.ERROR_BROKEN_PIPE:
                 raise BrokenPipeError("Broken pipe")
