@@ -73,6 +73,22 @@ namespace InjectedWorker
         {
             get { return "SetProperty"; }
         }
+
+        public static dynamic ConvertType(object value, Type type)
+        {
+            Type targetType = type;
+
+            if (targetType.IsGenericType && targetType.GetGenericTypeDefinition().Equals(typeof(Nullable<>)))
+            {
+                if (value == null)
+                {
+                    return null;
+                }
+                targetType = Nullable.GetUnderlyingType(targetType);
+            }
+
+            return Convert.ChangeType(value, targetType);
+        }
     }
 
     internal abstract class GetHandle<T> : ActionBase

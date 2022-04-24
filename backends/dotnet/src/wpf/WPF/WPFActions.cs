@@ -206,53 +206,64 @@ namespace InjectedWorker.WPF
 
             bool isExists = false;
 
+            Reply reply = null;
+
             Application.Current.Dispatcher.Invoke((Action)delegate
             {
-                PropertyInfo prop = c.GetType().GetProperty(args["name"]);
-                FieldInfo field = c.GetType().GetField(args["name"]);
-                if (prop != null)
+                try
                 {
-                    isExists = true;
-
-                    dynamic value = args["value"];
-                    if (args.ContainsKey("is_enum") && args["is_enum"])
+                    PropertyInfo prop = c.GetType().GetProperty(args["name"]);
+                    FieldInfo field = c.GetType().GetField(args["name"]);
+                    if (prop != null)
                     {
-                        value = Enum.Parse(prop.PropertyType, args["value"]);
+                        isExists = true;
+
+                        dynamic value = args["value"];
+                        if (args.ContainsKey("is_enum") && args["is_enum"])
+                        {
+                            value = Enum.Parse(prop.PropertyType, args["value"]);
+                        }
+
+                        try
+                        {
+                            value = ConvertType(value, prop.PropertyType);
+                        }
+                        catch (Exception e)
+                        {
+                            reply = new ErrorReply(ErrorCodes.UNSUPPORTED_TYPE, "can not convert to property type: " + e.ToString());
+                        }
+                        prop.SetValue(c, value, null);
+                    }
+                    else if (field != null)
+                    {
+                        isExists = true;
+                        dynamic value = args["value"];
+                        if (args.ContainsKey("is_enum") && args["is_enum"])
+                        {
+                            value = Enum.Parse(field.FieldType, args["value"]);
+                        }
+
+                        try
+                        {
+                            value = ConvertType(value, field.FieldType);
+                        }
+                        catch (Exception e)
+                        {
+                            reply = new ErrorReply(ErrorCodes.UNSUPPORTED_TYPE, "can not convert to field type: " + e.ToString());
+                        }
+
+                        field.SetValue(c, value);
                     }
 
-                    try
-                    {
-                        value = Convert.ChangeType(value, prop.PropertyType);
-                    } 
-                    catch (Exception e)
-                    {
-                        throw new ErrorReplyException(ErrorCodes.UNSUPPORTED_TYPE, "can not convert to property type: " + e.ToString());
-                    }
-                    prop.SetValue(c, value, null);
+                    reply = new Reply(ErrorCodes.OK);
                 }
-                else if (field != null)
+                catch (Exception e)
                 {
-                    isExists = true;
-                    dynamic value = args["value"];
-                    if (args.ContainsKey("is_enum") && args["is_enum"])
-                    {
-                        value = Enum.Parse(field.FieldType, args["value"]);
-                    }
-
-                    try
-                    {
-                        value = Convert.ChangeType(value, field.FieldType);
-                    }
-                    catch (Exception e)
-                    {
-                        throw new ErrorReplyException(ErrorCodes.UNSUPPORTED_TYPE, "can not convert to field type: " + e.ToString());
-                    }
-
-                    field.SetValue(c, value);
+                    reply = new ErrorReply(ErrorCodes.RUNTIME_ERROR, e.ToString());
                 }
             });
             if (isExists)
-                return new Reply(ErrorCodes.OK);
+                return reply;
             else
                 throw new ErrorReplyException(ErrorCodes.NOT_FOUND, "no such field or property: " + args["name"]);
         }
@@ -343,7 +354,7 @@ namespace InjectedWorker.WPF
             this.KnownTypes.Add(typeof(System.Windows.Controls.ToolBar), "ToolBar");
             this.KnownTypes.Add(typeof(System.Windows.Controls.Menu), "Menu");
             this.KnownTypes.Add(typeof(System.Windows.Controls.MenuItem), "MenuItem");
-            this.KnownTypes.Add(typeof(System.Windows.Controls.TabControl), "TabControl");
+            this.KnownTypes.Add(typeof(System.Windows.Controls.TabControl), "Tab");
             this.KnownTypes.Add(typeof(System.Windows.Controls.TabItem), "TabItem");
             this.KnownTypes.Add(typeof(System.Windows.Controls.TreeView), "TreeView");
             this.KnownTypes.Add(typeof(System.Windows.Controls.TreeViewItem), "TreeItem");
