@@ -16,7 +16,7 @@ namespace InjectedWorker.WPF
             object c = controls.GetControl(args["element_id"]);
 
             // TODO params support (array of pairs function_type-value?)
-            MethodInfo method = c.GetType().GetMethod(args["name"]);
+            MethodInfo method = c.GetType().GetMethod(args["name"], Type.EmptyTypes);
 
             dynamic ret = null;
             Application.Current.Dispatcher.Invoke((Action)delegate
