@@ -64,6 +64,36 @@ namespace InjectedWorker.WPF
             return ret;
         }
 
+        protected IEnumerable<T> FindChildrenOfType<T>(DependencyObject o)
+            where T : class
+        {
+            foreach (var child in GetChildrenByVisualTreeHelper(o))
+            {
+                T castedChild = child as T;
+                if (castedChild != null)
+                {
+                    yield return castedChild;
+                }
+                else
+                {
+                    foreach (var internalChild in FindChildrenOfType<T>(child))
+                    {
+                        yield return internalChild;
+                    }
+                }
+            }
+        }
+
+        protected IEnumerable<DependencyObject> GetChildrenByVisualTreeHelper(DependencyObject o)
+        {
+            int childCount = VisualTreeHelper.GetChildrenCount(o);
+
+            for (int i = 0; i < childCount; i++)
+            {
+                yield return VisualTreeHelper.GetChild(o, i);
+            }
+        }
+
         public List<long> GetChildrenOf(HeaderedContentControl o)
         {
             List<long> ret = null;
@@ -117,6 +147,21 @@ namespace InjectedWorker.WPF
                 {
                     if (item is DependencyObject)
                         ret.Add(ControlsStrorage.RegisterControl(item as DependencyObject));
+                }
+            });
+            return ret;
+        }
+
+        public List<long> GetChildrenOf(ListView o)
+        {
+            List<long> ret = null;
+
+            Application.Current.Dispatcher.Invoke((Action)delegate
+            {
+                ret = new List<long>();
+                foreach (var child in FindChildrenOfType<ListViewItem>(o))
+                {
+                    ret.Add(ControlsStrorage.RegisterControl(child as DependencyObject));
                 }
             });
             return ret;
@@ -356,9 +401,9 @@ namespace InjectedWorker.WPF
             this.KnownTypes.Add(typeof(System.Windows.Controls.MenuItem), "MenuItem");
             this.KnownTypes.Add(typeof(System.Windows.Controls.TabControl), "Tab");
             this.KnownTypes.Add(typeof(System.Windows.Controls.TabItem), "TabItem");
-            this.KnownTypes.Add(typeof(System.Windows.Controls.TreeView), "TreeView");
+            this.KnownTypes.Add(typeof(System.Windows.Controls.TreeView), "Tree");
             this.KnownTypes.Add(typeof(System.Windows.Controls.TreeViewItem), "TreeItem");
-            this.KnownTypes.Add(typeof(System.Windows.Controls.ListBox), "ListBox");
+            this.KnownTypes.Add(typeof(System.Windows.Controls.ListBox), "List");
             this.KnownTypes.Add(typeof(System.Windows.Controls.ListBoxItem), "ListItem");
             this.KnownTypes.Add(typeof(System.Windows.Controls.DataGrid), "DataGrid");
             this.KnownTypes.Add(typeof(System.Windows.Controls.ComboBox), "ComboBox");
