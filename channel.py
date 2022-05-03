@@ -47,6 +47,7 @@ class Pipe(object):
 
     def transact(self, string):
         try:
+            # TODO get preferred encoding from application
             win32file.WriteFile(self.handle, string.encode('utf-8'))
             win32file.FlushFileBuffers(self.handle)
             resp = win32file.ReadFile(self.handle, 64 * 1024)

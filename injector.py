@@ -1,4 +1,5 @@
 import ctypes
+import locale
 import os
 from pywinauto.handleprops import is64bitprocess
 from pywinauto.timings import TimeoutError as WaitError
@@ -22,7 +23,8 @@ class Injector(object):
         self.dll_path = os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                      'backends', backend_name,
                                      'bin', 'x{}'.format("64" if is64bitprocess(self.pid) else "86"),
-                                     '{}{}.dll'.format(dll_name, "u" if self.is_unicode else "")).encode()
+                                     '{}.dll'.format(dll_name)).encode('utf-16' if self.is_unicode
+                                                                       else locale.getpreferredencoding())
         self._inject_dll_to_process()
 
     @staticmethod
