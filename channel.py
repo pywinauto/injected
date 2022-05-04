@@ -9,6 +9,7 @@ from pywinauto.actionlogger import ActionLogger
 class BrokenPipeError(Exception):
     pass
 
+
 class Pipe(object):
     def __init__(self, name):
         self.name = name

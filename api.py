@@ -16,21 +16,26 @@ NOT_FOUND = 5
 UNSUPPORTED_TYPE = 6
 INVALID_VALUE = 7
 
+
 class InjectedTargetError(Exception):
     """Base class for exceptions based on errors returned from injected DLL side"""
     pass
+
 
 class UnsupportedActionError(InjectedTargetError):
     """The specified action is not supported"""
     pass
 
+
 class TargetRuntimeError(InjectedTargetError):
     """Runtime exception during code execution inside injected target"""
     pass
 
+
 class NotFoundError(InjectedTargetError):
     """Requested item not found: control element, property, ..."""
     pass
+
 
 @six.add_metaclass(Singleton)
 class ConnectionManager(object):
@@ -67,6 +72,6 @@ class ConnectionManager(object):
         elif reply['status_code'] == NOT_FOUND:
             raise NotFoundError(reply['message'])
         elif reply['status_code'] != OK:
-            raise InjectedBackendError()
+            raise InjectedTargetError()
 
         return reply
