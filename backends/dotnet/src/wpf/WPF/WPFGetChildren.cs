@@ -3,23 +3,30 @@ using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Media.Media3D;
 
 namespace InjectedWorker.WPF
 {
     class WPFGetChildren : GetChildrenAction<DependencyObject>
     {
-        private ControlsStorage<DependencyObject> ControlsStrorage;
+        private ControlsStorage<DependencyObject> ControlsStorage;
 
         public override Reply Run<T>(ControlsStorage<T> controls, IDictionary<string, dynamic> args)
         {
-            ControlsStrorage = controls as ControlsStorage<DependencyObject>;
+            ControlsStorage = controls as ControlsStorage<DependencyObject>;
 
             CheckParamExists(args, "element_id");
             CheckValidControlId<T>(args["element_id"], null);
 
             if (args["element_id"] == 0)
             {
-                return new ElementsReply(GetWindows());
+                List<long> windows = null;
+                Application.Current.Dispatcher.Invoke((Action)delegate
+                {
+                    windows = new List<long>();
+                    GetWindows(windows);
+                });
+                return new ElementsReply(windows);
             }
             else
             {
@@ -28,23 +35,24 @@ namespace InjectedWorker.WPF
                 if (c == null)
                     throw new ErrorReplyException(ErrorCodes.NOT_FOUND, "element not found: " + args["element_id"]);
                 else
-                    return new ElementsReply(GetChildrenOf(c));
+                {
+                    List<long> children = null;
+                    Application.Current.Dispatcher.Invoke((Action)delegate
+                    {
+                        children = new List<long>();
+                        GetChildrenOf(children, c);
+                    });
+                    return new ElementsReply(children);
+                }       
             }
         }
 
-        public List<long> GetWindows()
+        public void GetWindows(List<long> result)
         {
-            var ret = new List<long>();
-
-            Application.Current.Dispatcher.Invoke((Action)delegate
+            foreach (Window w in Application.Current.Windows)
             {
-                foreach (Window w in Application.Current.Windows)
-                {
-                    ret.Add(ControlsStrorage.RegisterControl(w));
-                }
-            });
-
-            return ret;
+                result.Add(ControlsStorage.RegisterControl(w));
+            }
         }
 
         protected IEnumerable<T> FindChildrenOfType<T>(DependencyObject o)
@@ -75,90 +83,87 @@ namespace InjectedWorker.WPF
             }
         }
 
-        public List<long> GetChildrenOf(DependencyObject o)
+        public void GetChildrenOf(List<long> result, DependencyObject o)
         {
-            var ret = new List<long>();
-            Application.Current.Dispatcher.Invoke((Action)delegate
+            if (o is Visual || o is Visual3D)
             {
                 foreach (DependencyObject child in GetChildrenByVisualTreeHelper(o))
                 {
-                    ret.Add(ControlsStrorage.RegisterControl(child));
+                    result.Add(ControlsStorage.RegisterControl(child));
                 }
-            });
-            return ret;
+            }
+            else
+            {
+                //foreach (object child in LogicalTreeHelper.GetChildren(o))
+                //{
+                //    if (child is DependencyObject)
+                //    {
+                //        ret.Add(ControlsStorage.RegisterControl(child as DependencyObject));
+                //    }
+                //}
+            }
         }
 
-        public List<long> GetChildrenOf(HeaderedContentControl o)
+        public void GetChildrenOf(List<long> result, HeaderedContentControl o)
         {
-            List<long> ret = null;
-            Application.Current.Dispatcher.Invoke((Action)delegate
-            {
-                ret = new List<long>();
-                if (o.Header is DependencyObject)
-                    ret.Add(ControlsStrorage.RegisterControl(o.Header as DependencyObject));
-                if (o.Content is DependencyObject)
-                    ret.Add(ControlsStrorage.RegisterControl(o.Content as DependencyObject));
-            });
-            return ret;
+            if (o.Header is DependencyObject)
+                result.Add(ControlsStorage.RegisterControl(o.Header as DependencyObject));
+
+            GetChildrenOf(result, o as ContentControl);
         }
 
-        public List<long> GetChildrenOf(ContentControl o)
+        public void GetChildrenOf(List<long> result, ContentControl o)
         {
-            List<long> ret = null;
-            Application.Current.Dispatcher.Invoke((Action)delegate
+            if (o.Content is DependencyObject)
             {
-                ret = new List<long>();
-                if (o.Content is DependencyObject)
-                    ret.Add(ControlsStrorage.RegisterControl(o.Content as DependencyObject));
-            });
-            return ret;
+                result.Add(ControlsStorage.RegisterControl(o.Content as DependencyObject));
+            }
+            else if (o.Content != null)
+            {
+                // if property value is not control (for example, string or DateTime object), try to search in visual tree
+                GetChildrenOf(result, o as DependencyObject);
+            }
         }
 
-        public List<long> GetChildrenOf(HeaderedItemsControl o)
+        public void GetChildrenOf(List<long> result, HeaderedItemsControl o)
         {
-            List<long> ret = null;
-            Application.Current.Dispatcher.Invoke((Action)delegate
+            if (o.Header is DependencyObject)
+                result.Add(ControlsStorage.RegisterControl(o.Header as DependencyObject));
+            GetChildrenOf(result, o as ItemsControl);
+        }
+
+        public void GetChildrenOf(List<long> result, ItemsControl o)
+        {
+            foreach (var item in o.Items)
             {
-                ret = new List<long>();
-                if (o.Header is DependencyObject)
-                    ret.Add(ControlsStrorage.RegisterControl(o.Header as DependencyObject));
-                foreach (var item in o.Items)
+                if (item is DependencyObject)
+                    result.Add(ControlsStorage.RegisterControl(item as DependencyObject));
+            }
+        }
+
+        public void GetChildrenOf(List<long> result, ListView o)
+        {
+            if (o.View is GridView)
+            {
+                GridView gridView = o.View as GridView;
+                foreach (GridViewColumn c in gridView.Columns)
                 {
-                    if (item is DependencyObject)
-                        ret.Add(ControlsStrorage.RegisterControl(item as DependencyObject));
+                    result.Add(ControlsStorage.RegisterControl(c));
                 }
-            });
-            return ret;
-        }
-
-        public List<long> GetChildrenOf(ItemsControl o)
-        {
-            List<long> ret = null;
-            Application.Current.Dispatcher.Invoke((Action)delegate
+            }
+            foreach (var child in FindChildrenOfType<ListViewItem>(o))
             {
-                ret = new List<long>();
-                foreach (var item in o.Items)
-                {
-                    if (item is DependencyObject)
-                        ret.Add(ControlsStrorage.RegisterControl(item as DependencyObject));
-                }
-            });
-            return ret;
+                result.Add(ControlsStorage.RegisterControl(child));
+            }
         }
 
-        public List<long> GetChildrenOf(ListView o)
+        public void GetChildrenOf(List<long> result, ListViewItem o)
         {
-            List<long> ret = null;
-
-            Application.Current.Dispatcher.Invoke((Action)delegate
+            foreach (var child in FindChildrenOfType<GridViewRowPresenter>(o))
             {
-                ret = new List<long>();
-                foreach (var child in FindChildrenOfType<ListViewItem>(o))
-                {
-                    ret.Add(ControlsStrorage.RegisterControl(child));
-                }
-            });
-            return ret;
+                result.Add(ControlsStorage.RegisterControl(child));
+            }
         }
+
     }
 }
