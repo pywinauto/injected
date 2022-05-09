@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Media;
 using System.Windows.Media.Media3D;
 
@@ -134,10 +135,19 @@ namespace InjectedWorker.WPF
 
         public void GetChildrenOf(List<long> result, ItemsControl o)
         {
+            bool hasControlInItems = false;
             foreach (var item in o.Items)
             {
                 if (item is DependencyObject)
+                {
+                    hasControlInItems = true;
                     result.Add(ControlsStorage.RegisterControl(item as DependencyObject));
+                }
+            }
+
+            if (!hasControlInItems && o.Items.Count > 0)
+            {
+                GetChildrenOf(result, o as DependencyObject);
             }
         }
 
@@ -165,5 +175,28 @@ namespace InjectedWorker.WPF
             }
         }
 
+        public void GetChildrenOf(List<long> result, DataGrid o)
+        {
+            foreach (DataGridColumn c in o.Columns)
+            {
+                result.Add(ControlsStorage.RegisterControl(c));
+            }
+            foreach (var child in FindChildrenOfType<DataGridRow>(o))
+            {
+                result.Add(ControlsStorage.RegisterControl(child));
+            }
+        }
+
+        public void GetChildrenOf(List<long> result, DataGridRow o)
+        {
+            foreach (var child in FindChildrenOfType<DataGridCell>(o))
+            {
+                result.Add(ControlsStorage.RegisterControl(child));
+            }
+            foreach (var child in FindChildrenOfType<DataGridDetailsPresenter>(o))
+            {
+                result.Add(ControlsStorage.RegisterControl(child));
+            }
+        }
     }
 }

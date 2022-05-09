@@ -13,6 +13,9 @@ namespace InjectedWorker.WPF
 
             this.KnownTypes.Add(typeof(System.Windows.Window), "Window");
             this.KnownTypes.Add(typeof(System.Windows.Controls.Panel), "Pane");
+            this.KnownTypes.Add(typeof(System.Windows.Controls.Decorator), "Pane");
+            this.KnownTypes.Add(typeof(System.Windows.Controls.ContentPresenter), "Pane");
+            this.KnownTypes.Add(typeof(System.Windows.Controls.Primitives.GridViewRowPresenterBase), "Pane");
             this.KnownTypes.Add(typeof(System.Windows.Controls.ToolBar), "ToolBar");
             this.KnownTypes.Add(typeof(System.Windows.Controls.Menu), "Menu");
             this.KnownTypes.Add(typeof(System.Windows.Controls.MenuItem), "MenuItem");
@@ -22,6 +25,7 @@ namespace InjectedWorker.WPF
             this.KnownTypes.Add(typeof(System.Windows.Controls.TreeViewItem), "TreeItem");
             this.KnownTypes.Add(typeof(System.Windows.Controls.ListBox), "List");
             this.KnownTypes.Add(typeof(System.Windows.Controls.ListBoxItem), "ListItem");
+            this.KnownTypes.Add(typeof(System.Windows.Controls.DataGridRow), "ListItem");
             this.KnownTypes.Add(typeof(System.Windows.Controls.DataGrid), "DataGrid");
             this.KnownTypes.Add(typeof(System.Windows.Controls.ComboBox), "ComboBox");
             this.KnownTypes.Add(typeof(System.Windows.Controls.Label), "Text");
@@ -36,6 +40,7 @@ namespace InjectedWorker.WPF
             this.KnownTypes.Add(typeof(System.Windows.Controls.RichTextBox), "Document");
             this.KnownTypes.Add(typeof(System.Windows.Controls.Slider), "Slider");
             this.KnownTypes.Add(typeof(System.Windows.Controls.GridViewColumn), "HeaderItem");
+            this.KnownTypes.Add(typeof(System.Windows.Controls.DataGridTextColumn), "HeaderItem");
         }
 
         public override Reply Run<T>(ControlsStorage<T> controls, IDictionary<string, dynamic> args)

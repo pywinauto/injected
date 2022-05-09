@@ -103,5 +103,15 @@ namespace InjectedWorker.WPF
             dynamic source = o.Header;
             return GetNameString(source);
         }
+
+        protected virtual string GetNameString(DataGridColumn o)
+        {
+            if (o.Header == null)
+            {
+                return "";
+            }
+            dynamic source = o.Header;
+            return GetNameString(source);
+        }
     }
 }
