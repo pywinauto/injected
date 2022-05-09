@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Windows;
+using System.Windows.Controls;
 
 namespace InjectedWorker.WPF
 {
@@ -23,15 +25,17 @@ namespace InjectedWorker.WPF
             this.KnownTypes.Add(typeof(System.Windows.Controls.DataGrid), "DataGrid");
             this.KnownTypes.Add(typeof(System.Windows.Controls.ComboBox), "ComboBox");
             this.KnownTypes.Add(typeof(System.Windows.Controls.Label), "Text");
+            this.KnownTypes.Add(typeof(System.Windows.Controls.TextBlock), "Text");
             this.KnownTypes.Add(typeof(System.Windows.Controls.Button), "Button");
             this.KnownTypes.Add(typeof(System.Windows.Controls.Primitives.ToggleButton), "Button");
             this.KnownTypes.Add(typeof(System.Windows.Controls.TextBox), "Edit");
+            this.KnownTypes.Add(typeof(System.Windows.Controls.PasswordBox), "Edit");
             this.KnownTypes.Add(typeof(System.Windows.Controls.ScrollViewer), "ScrollBar");
             this.KnownTypes.Add(typeof(System.Windows.Controls.CheckBox), "CheckBox");
             this.KnownTypes.Add(typeof(System.Windows.Controls.RadioButton), "RadioButton");
-            this.KnownTypes.Add(typeof(System.Windows.Controls.PasswordBox), "Edit");
             this.KnownTypes.Add(typeof(System.Windows.Controls.RichTextBox), "Document");
             this.KnownTypes.Add(typeof(System.Windows.Controls.Slider), "Slider");
+            this.KnownTypes.Add(typeof(System.Windows.Controls.GridViewColumn), "HeaderItem");
         }
 
         public override Reply Run<T>(ControlsStorage<T> controls, IDictionary<string, dynamic> args)
@@ -46,6 +50,19 @@ namespace InjectedWorker.WPF
 
         protected override string FindControlType(object obj)
         {
+            string typeFromCustomLogic = "";
+            Application.Current.Dispatcher.Invoke((Action)delegate
+            {
+                if (obj is ListView && (obj as ListView).View is GridView)
+                {
+                    typeFromCustomLogic = "DataGrid";
+                }
+            });
+
+            if (typeFromCustomLogic.Length > 0)
+            {
+                return typeFromCustomLogic;
+            }
             return base.FindControlType(obj);
         }
     }
