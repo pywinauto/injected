@@ -88,5 +88,20 @@ namespace InjectedWorker.WPF
             dynamic source = o.Header;
             return GetNameString(source);
         }
+
+        protected virtual string GetNameString(TextBlock o)
+        {
+            return o.Text;
+        }
+
+        protected virtual string GetNameString(GridViewColumn o)
+        {
+            if (o.Header == null)
+            {
+                return "";
+            }
+            dynamic source = o.Header;
+            return GetNameString(source);
+        }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Windows;
+using System.Windows.Media;
 
 namespace InjectedWorker.WPF
 {
@@ -16,10 +17,10 @@ namespace InjectedWorker.WPF
             DynamicValueReply reply = null;
             Application.Current.Dispatcher.Invoke((Action)delegate
             {
-                FrameworkElement control = c as FrameworkElement;
+                Visual control = c as Visual;
                 if (control != null)
                 {
-                    DependencyObject parentControl = control.Parent;
+                    DependencyObject parentControl = VisualTreeHelper.GetParent(control);
                     if (parentControl != null)
                     {
                         reply = new DynamicValueReply((controls as ControlsStorage<DependencyObject>).RegisterControl(parentControl));

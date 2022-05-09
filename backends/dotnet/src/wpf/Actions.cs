@@ -129,7 +129,7 @@ namespace InjectedWorker
 
         protected virtual string FindControlType(object obj)
         {
-            // traverse inheritance hierarchy of given object
+            // traverse inheritance hierarchy of the given object
             for (Type t = obj.GetType(); t != null; t = t.BaseType)
             {
                 if (KnownTypes.ContainsKey(t))
