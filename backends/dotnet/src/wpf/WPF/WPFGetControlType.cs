@@ -25,7 +25,8 @@ namespace InjectedWorker.WPF
             this.KnownTypes.Add(typeof(System.Windows.Controls.TreeViewItem), "TreeItem");
             this.KnownTypes.Add(typeof(System.Windows.Controls.ListBox), "List");
             this.KnownTypes.Add(typeof(System.Windows.Controls.ListBoxItem), "ListItem");
-            this.KnownTypes.Add(typeof(System.Windows.Controls.DataGridRow), "ListItem");
+            this.KnownTypes.Add(typeof(System.Windows.Controls.ListViewItem), "DataItem");
+            this.KnownTypes.Add(typeof(System.Windows.Controls.DataGridRow), "DataItem");
             this.KnownTypes.Add(typeof(System.Windows.Controls.DataGrid), "DataGrid");
             this.KnownTypes.Add(typeof(System.Windows.Controls.ComboBox), "ComboBox");
             this.KnownTypes.Add(typeof(System.Windows.Controls.Label), "Text");
