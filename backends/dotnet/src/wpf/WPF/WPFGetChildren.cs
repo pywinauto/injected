@@ -126,6 +126,11 @@ namespace InjectedWorker.WPF
             }
         }
 
+        public void GetChildrenOf(List<long> result, Window o)
+        {
+            GetChildrenOf(result, o as DependencyObject);
+        }
+
         public void GetChildrenOf(List<long> result, HeaderedItemsControl o)
         {
             if (o.Header is DependencyObject)
