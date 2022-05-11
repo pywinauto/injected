@@ -17,22 +17,22 @@ UNSUPPORTED_TYPE = 6
 INVALID_VALUE = 7
 
 
-class InjectedTargetError(Exception):
+class InjectedBaseError(Exception):
     """Base class for exceptions based on errors returned from injected DLL side"""
     pass
 
 
-class UnsupportedActionError(InjectedTargetError):
+class InjectedUnsupportedActionError(InjectedBaseError):
     """The specified action is not supported"""
     pass
 
 
-class TargetRuntimeError(InjectedTargetError):
+class InjectedRuntimeError(InjectedBaseError):
     """Runtime exception during code execution inside injected target"""
     pass
 
 
-class NotFoundError(InjectedTargetError):
+class InjectedNotFoundError(InjectedBaseError):
     """Requested item not found: control element, property, ..."""
     pass
 
@@ -66,12 +66,12 @@ class ConnectionManager(object):
         reply = json.loads(reply)
 
         if reply['status_code'] == UNSUPPORTED_ACTION:
-            raise UnsupportedActionError(reply['message'])
+            raise InjectedUnsupportedActionError(reply['message'])
         elif reply['status_code'] == RUNTIME_ERROR:
-            raise TargetRuntimeError(reply['message'])
+            raise InjectedRuntimeError(reply['message'])
         elif reply['status_code'] == NOT_FOUND:
-            raise NotFoundError(reply['message'])
+            raise InjectedNotFoundError(reply['message'])
         elif reply['status_code'] != OK:
-            raise InjectedTargetError()
+            raise InjectedBaseError()
 
         return reply

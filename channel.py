@@ -6,7 +6,7 @@ import winerror
 from pywinauto.actionlogger import ActionLogger
 
 
-class BrokenPipeError(Exception):
+class InjectedBrokenPipeError(Exception):
     pass
 
 
@@ -41,7 +41,7 @@ class Pipe(object):
                                                                                                 self.name))
                     time.sleep(delay)
                 else:
-                    raise BrokenPipeError('Unexpected pipe error: {}'.format(e))
+                    raise InjectedBrokenPipeError('Unexpected pipe error: {}'.format(e))
         if self.handle is not None:
             return True
         return False
@@ -55,10 +55,9 @@ class Pipe(object):
             return resp[1].decode('utf-8')
         except pywintypes.error as e:
             if e.args[0] == winerror.ERROR_BROKEN_PIPE:
-                raise BrokenPipeError("Broken pipe")
+                raise InjectedBrokenPipeError("Broken pipe")
             else:
-                raise BrokenPipeError('Unexpected pipe error: {}'.format(e))
+                raise InjectedBrokenPipeError('Unexpected pipe error: {}'.format(e))
 
     def close(self):
         win32file.CloseHandle(self.handle)
-
