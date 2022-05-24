@@ -102,7 +102,7 @@ int LoadWorkerDll() {
 
                 Log().Get() << "load worker dll and start server - " << workerDllPath;
                 DWORD pReturnValue;
-                int ret = runtimeHost->ExecuteInDefaultAppDomain(workerDllPath, L"InjectedWorker.Main", L"StartServer", L"", &pReturnValue);
+                int ret = runtimeHost->ExecuteInDefaultAppDomain(workerDllPath, L"InjectedWorker.Server", L"Start", L"", &pReturnValue);
                 if (ret == S_OK) {
                     Log().Get() << "worker dll: server is finished";
                 }

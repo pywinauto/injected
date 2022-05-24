@@ -6,11 +6,11 @@ using System.IO;
 
 namespace InjectedWorker
 {
-    public class Main
+    public class Server
     {
         private static IRequestHandler Handler = new WPF.WPFControlsHandler();
 
-        public static int StartServer(string arg)
+        public static int Start(string arg)
         {
             int pid = Process.GetCurrentProcess().Id;
             using (NamedPipeServerStream pipeServer = new NamedPipeServerStream(String.Format("pywinauto_{0}", pid), PipeDirection.InOut, 1, PipeTransmissionMode.Message))
