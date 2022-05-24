@@ -12,7 +12,7 @@ class Injector(object):
     """Class for injections dll"""
 
     def __init__(self, pid, backend_name, dll_name, is_unicode=False):
-        """Constructor inject dll (one application - one class instance)"""
+        """Constructor inject dll (one application - one class instance)."""
         self.is_unicode = is_unicode
         self.pid = pid
         if not sysinfo.is_x64_Python() == is64bitprocess(self.pid):

@@ -66,6 +66,13 @@ namespace InjectedWorker
             get { return "GetProperty"; }
         }
     }
+    internal abstract class GetProperties<T> : ActionBase
+    {
+        public override string Name
+        {
+            get { return "GetProperties"; }
+        }
+    }
 
     internal abstract class SetProperty<T> : ActionBase
     {

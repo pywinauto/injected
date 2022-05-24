@@ -13,7 +13,7 @@ namespace InjectedWorker
             Fields["status_code"] = (long)statusCode;
         }
 
-        // TODO incapsulation
+        // TODO encapsulation
         public Dictionary<string, dynamic> Fields = new Dictionary<string, dynamic>();
     }
 
@@ -31,10 +31,22 @@ namespace InjectedWorker
         public DynamicValueReply(dynamic value)
             : base(ErrorCodes.OK)
         {
-            if (value == null || value.GetType().IsPrimitive || value.GetType() == typeof(string))
-                Fields["value"] = value;
+            if (value == null)
+            {
+                Fields["value"] = null;
+            }
             else
-                Serialize(value);
+            {
+                Type type = value.GetType();
+                if (type.IsPrimitive || type == typeof(string) || type.GetInterface("ICollection") != null)
+                {
+                    Fields["value"] = value;
+                }
+                else
+                {
+                    Serialize(value);
+                }
+            }            
         }
 
         protected void Serialize(object o)

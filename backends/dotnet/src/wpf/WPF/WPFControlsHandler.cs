@@ -9,6 +9,7 @@ namespace InjectedWorker.WPF
             RegisterAction(new GetTypeName());
 
             RegisterAction(new WPFGetChildren());
+            RegisterAction(new WPFGetProperties());
             RegisterAction(new WPFGetProperty());
             RegisterAction(new WPFSetProperty());
             RegisterAction(new WPFGetRectangle());
