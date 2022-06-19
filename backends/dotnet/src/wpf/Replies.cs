@@ -54,8 +54,10 @@ namespace InjectedWorker
             if (o == null)
             {
                 Fields["value"] = "";
+            } else
+            {
+                Fields["value"] = o.ToString();
             }
-            Fields["value"] = o.ToString();
         }
         protected void Serialize(Rect rect)
         {

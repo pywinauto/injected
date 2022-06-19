@@ -6,7 +6,7 @@ using System.IO;
 
 namespace InjectedWorker
 {
-    public class Server
+    public static class Server
     {
         private static IRequestHandler Handler = new WPF.WPFControlsHandler();
 
