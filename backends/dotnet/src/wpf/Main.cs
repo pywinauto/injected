@@ -15,7 +15,8 @@ namespace InjectedWorker
             int pid = Process.GetCurrentProcess().Id;
             using (NamedPipeServerStream pipeServer = new NamedPipeServerStream(String.Format("pywinauto_{0}", pid), PipeDirection.InOut, 1, PipeTransmissionMode.Message))
             {
-                while (true)
+                bool stop = false;
+                while (!stop)
                 {
                     try
                     {
@@ -26,8 +27,18 @@ namespace InjectedWorker
                         while (pipeServer.IsConnected)
                         {
                             string request = ReadTextFromStream(pipeServer);
-                            if (request == null)
+                            if (request == null || request == "disconnect")
+                            {
+                                Debug.Print("Disconnect");
                                 break;
+                            }
+                            else if (request == "shutdown")
+                            {
+                                Debug.Print("Shutdown server");
+                                stop = true;
+                                break;
+                            }
+
                             string response = Handler.ProcessRequest(request);
                             var data = Encoding.UTF8.GetBytes(response);
                             pipeServer.Write(data, 0, data.Length);
@@ -44,9 +55,7 @@ namespace InjectedWorker
                 }
             }
 
-#pragma warning disable CS0162 // Unreachable code detected
             return 0;
-#pragma warning restore CS0162 // Unreachable code detected
         }
 
         private static string ReadTextFromStream(NamedPipeServerStream stream)

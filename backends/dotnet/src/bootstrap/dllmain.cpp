@@ -7,6 +7,7 @@ extern "C" __declspec(dllexport) int LoadWorkerDll();
 bool initWorkerDllAbsolutePath(HMODULE hCurrentDll, wchar_t* buf, size_t len, const wchar_t* workerDllName);
 ICLRRuntimeInfo* FindAvailableClrSince4(ICLRMetaHost* metaHost);
 
+HMODULE hCurrentDll;
 wchar_t workerDllPath[MAX_PATH] = { 0 };
 
 // TODO add functions to enable/disable logging, set log level, unload dlls
@@ -22,6 +23,7 @@ BOOL APIENTRY DllMain( HMODULE hModule,
     {
         Log().Get() << "DLL_PROCESS_ATTACH";
 
+        hCurrentDll = hModule;
         if (!initWorkerDllAbsolutePath(hModule, workerDllPath, sizeof(workerDllPath) / sizeof(wchar_t), L"worker_wpf.dll"))
         {
             return FALSE;
@@ -99,6 +101,7 @@ extern "C" __declspec(dllexport)
 int LoadWorkerDll() {
     Log().Get() << "LoadWorkerDll() called";
 
+    DWORD returnValue = -1;
     // TODO CorBindToRuntimeEx for .NET < 4.0
     ICLRMetaHost* metaHost = nullptr;
     if (OK(CLRCreateInstance(CLSID_CLRMetaHost, IID_ICLRMetaHost, (LPVOID*)&metaHost), "CLRCreateInstance")) {
@@ -111,9 +114,8 @@ int LoadWorkerDll() {
                 runtimeHost->Start();
 
                 Log().Get() << "load worker dll and start server - " << workerDllPath;
-                DWORD pReturnValue;
-                if (OK(runtimeHost->ExecuteInDefaultAppDomain(workerDllPath, L"InjectedWorker.Server", L"Start", L"", &pReturnValue), "ExecuteInDefaultAppDomain")) {
-                    Log().Get() << "worker dll: server is finished";
+                if (OK(runtimeHost->ExecuteInDefaultAppDomain(workerDllPath, L"InjectedWorker.Server", L"Start", L"", &returnValue), "ExecuteInDefaultAppDomain")) {
+                    Log().Get() << "worker dll: server is finished with code " << returnValue;
                 }
 
                 runtimeHost->Release();
@@ -125,6 +127,12 @@ int LoadWorkerDll() {
         }
         metaHost->Release();
     }
+
+    // TODO unload worker_wpf.dll Maybe load it in the separate AppDomain?
+    // https://stackoverflow.com/questions/5067789/trying-to-unload-unmanaged-and-managed-third-party-dlls
+
+    Log().Get() << "Exiting LoadWorkerDll thread and unloading bootstrap DLL";
+    FreeLibraryAndExitThread(hCurrentDll, returnValue);
 
     return 0;
 }

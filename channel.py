@@ -49,8 +49,7 @@ class Pipe(object):
     def transact(self, string):
         try:
             # TODO get preferred encoding from application
-            win32file.WriteFile(self.handle, string.encode('utf-8'))
-            win32file.FlushFileBuffers(self.handle)
+            self.write(string, 'utf-8')
             resp = win32file.ReadFile(self.handle, 64 * 1024)
             return resp[1].decode('utf-8')
         except pywintypes.error as e:
@@ -61,3 +60,8 @@ class Pipe(object):
 
     def close(self):
         win32file.CloseHandle(self.handle)
+
+    def write(self, string, encoding='utf-8'):
+        """Write string with the specified encoding to the named pipe."""
+        win32file.WriteFile(self.handle, string.encode(encoding))
+        win32file.FlushFileBuffers(self.handle)
