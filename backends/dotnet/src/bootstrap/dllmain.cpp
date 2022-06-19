@@ -39,12 +39,10 @@ BOOL APIENTRY DllMain( HMODULE hModule,
     }
     case DLL_THREAD_ATTACH:
     {
-        Log().Get() << "DLL_THREAD_ATTACH";
         break;
     }
     case DLL_THREAD_DETACH:
     {
-        Log().Get() << "DLL_THREAD_DETACH";
         break; 
     }
     case DLL_PROCESS_DETACH:
@@ -104,6 +102,7 @@ int LoadWorkerDll() {
     // TODO CorBindToRuntimeEx for .NET < 4.0
     ICLRMetaHost* metaHost = nullptr;
     if (OK(CLRCreateInstance(CLSID_CLRMetaHost, IID_ICLRMetaHost, (LPVOID*)&metaHost), "CLRCreateInstance")) {
+        Log().Get() << "Looking for CLR >= 4.0 ...";
         ICLRRuntimeInfo* runtimeInfo = FindAvailableClrSince4(metaHost);
         if (runtimeInfo) {
             ICLRRuntimeHost* runtimeHost = nullptr;
