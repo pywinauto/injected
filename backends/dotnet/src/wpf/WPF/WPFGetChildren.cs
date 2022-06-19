@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -41,7 +42,28 @@ namespace InjectedWorker.WPF
                     Application.Current.Dispatcher.Invoke((Action)delegate
                     {
                         children = new List<long>();
-                        GetChildrenOf(children, c);
+                        if (args.ContainsKey("tree_mode"))
+                        {
+                            switch (args["tree_mode"] as string)
+                            {
+                                case "visual_custom":
+                                    GetChildrenOf(children, c);
+                                    break;
+                                case "visual":
+                                    GetChildrenOf(children, c as DependencyObject);
+                                    break;
+                                case "logical":
+                                    GetLogicalChildrenOf(children, c);
+                                    break;
+                                default:
+                                    GetChildrenOf(children, c);
+                                    break;
+                            }
+                        }
+                        else
+                        {
+                            GetChildrenOf(children, c);
+                        }
                     });
                     return new ElementsReply(children);
                 }       
@@ -75,6 +97,16 @@ namespace InjectedWorker.WPF
                 }
             }
         }
+        public void GetLogicalChildrenOf(List<long> result, DependencyObject o)
+        {
+            foreach (object child in LogicalTreeHelper.GetChildren(o))
+            {
+                if (child is DependencyObject)
+                {
+                    result.Add(ControlsStorage.RegisterControl(child as DependencyObject));
+                }
+            }
+        }
 
         protected IEnumerable<DependencyObject> GetChildrenByVisualTreeHelper(DependencyObject o)
         {
@@ -92,16 +124,6 @@ namespace InjectedWorker.WPF
                 {
                     result.Add(ControlsStorage.RegisterControl(child));
                 }
-            }
-            else
-            {
-                //foreach (object child in LogicalTreeHelper.GetChildren(o))
-                //{
-                //    if (child is DependencyObject)
-                //    {
-                //        ret.Add(ControlsStorage.RegisterControl(child as DependencyObject));
-                //    }
-                //}
             }
         }
 
