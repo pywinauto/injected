@@ -5,7 +5,7 @@ using System.Windows.Controls;
 
 namespace InjectedWorker.WPF
 {
-    class WPFGetControlType : GetControlType<DependencyObject>
+    class WPFGetControlType : GetControlType
     {
         public WPFGetControlType()
         {

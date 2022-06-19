@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Windows;
 
 namespace InjectedWorker.WPF { 
-    class WPFRaiseEvent : RaiseEvent<DependencyObject>
+    class WPFRaiseEvent : RaiseEvent
     {
         public override Reply Run<T>(ControlsStorage<T> controls, IDictionary<string, dynamic> args)
         {

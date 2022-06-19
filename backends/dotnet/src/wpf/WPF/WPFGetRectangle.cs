@@ -4,7 +4,7 @@ using System.Windows;
 
 namespace InjectedWorker.WPF
 {
-    class WPFGetRectangle : GetRectangle<DependencyObject>
+    class WPFGetRectangle : GetRectangle
     {
         public override Reply Run<T>(ControlsStorage<T> controls, IDictionary<string, dynamic> args)
         {

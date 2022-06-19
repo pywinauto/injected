@@ -35,7 +35,7 @@ namespace InjectedWorker
         }
     }
 
-    internal abstract class GetChildrenAction<T> : ActionBase
+    internal abstract class GetChildren : ActionBase
     {
         public override string Name
         {
@@ -43,7 +43,7 @@ namespace InjectedWorker
         }
     }
 
-    internal abstract class GetParent<T> : ActionBase
+    internal abstract class GetParent : ActionBase
     {
         public override string Name
         {
@@ -51,7 +51,7 @@ namespace InjectedWorker
         }
     }
 
-    internal abstract class GetRectangle<T> : ActionBase
+    internal abstract class GetRectangle : ActionBase
     {
         public override string Name
         {
@@ -59,14 +59,14 @@ namespace InjectedWorker
         }
     }
 
-    internal abstract class GetProperty<T> : ActionBase
+    internal abstract class GetProperty : ActionBase
     {
         public override string Name
         {
             get { return "GetProperty"; }
         }
     }
-    internal abstract class GetProperties<T> : ActionBase
+    internal abstract class GetProperties : ActionBase
     {
         public override string Name
         {
@@ -74,7 +74,7 @@ namespace InjectedWorker
         }
     }
 
-    internal abstract class SetProperty<T> : ActionBase
+    internal abstract class SetProperty : ActionBase
     {
         public override string Name
         {
@@ -98,7 +98,7 @@ namespace InjectedWorker
         }
     }
 
-    internal abstract class GetHandle<T> : ActionBase
+    internal abstract class GetHandle : ActionBase
     {
         public override string Name
         {
@@ -124,7 +124,7 @@ namespace InjectedWorker
         }
     }
 
-    internal abstract class GetControlType<T> : ActionBase
+    internal abstract class GetControlType : ActionBase
     {
         protected Dictionary<Type, string> KnownTypes = new Dictionary<Type, string>();
         protected string DefaultType = "Custom";
@@ -149,7 +149,7 @@ namespace InjectedWorker
 
     }
 
-    internal abstract class GetFocusedElement<T> : ActionBase
+    internal abstract class GetFocusedElement : ActionBase
     {
         public override string Name
         {
@@ -157,7 +157,7 @@ namespace InjectedWorker
         }
     }
 
-    internal abstract class SetFocus<T> : ActionBase
+    internal abstract class SetFocus : ActionBase
     {
         public override string Name
         {
@@ -165,7 +165,7 @@ namespace InjectedWorker
         }
     }
 
-    internal abstract class GetName<T> : ActionBase
+    internal abstract class GetName : ActionBase
     {
         public override string Name
         {
@@ -173,7 +173,7 @@ namespace InjectedWorker
         }
     }
 
-    internal abstract class InvokeMethod<T> : ActionBase
+    internal abstract class InvokeMethod : ActionBase
     {
         public override string Name
         {
@@ -181,7 +181,7 @@ namespace InjectedWorker
         }
     }
 
-    internal abstract class RaiseEvent<T> : ActionBase
+    internal abstract class RaiseEvent : ActionBase
     {
         public override string Name
         {

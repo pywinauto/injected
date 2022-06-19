@@ -6,7 +6,7 @@ using System.Reflection;
 
 namespace InjectedWorker.WPF
 {
-    class WPFGetName : GetName<DependencyObject>
+    class WPFGetName : GetName
     {
         public override Reply Run<T>(ControlsStorage<T> controls, IDictionary<string, dynamic> args)
         {
