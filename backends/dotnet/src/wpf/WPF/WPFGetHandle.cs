@@ -6,7 +6,7 @@ using System.Windows.Media;
 
 namespace InjectedWorker.WPF
 {
-    class WPFGetHandle : GetHandle<DependencyObject>
+    class WPFGetHandle : GetHandle
     {
         public override Reply Run<T>(ControlsStorage<T> controls, IDictionary<string, dynamic> args)
         {

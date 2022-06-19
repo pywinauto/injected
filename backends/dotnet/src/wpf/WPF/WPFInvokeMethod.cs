@@ -5,7 +5,7 @@ using System.Reflection;
 
 namespace InjectedWorker.WPF
 {
-    class WPFInvokeMethod : InvokeMethod<DependencyObject>
+    class WPFInvokeMethod : InvokeMethod
     {
         public override Reply Run<T>(ControlsStorage<T> controls, IDictionary<string, dynamic> args)
         {

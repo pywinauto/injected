@@ -5,7 +5,7 @@ using System.Windows.Input;
 
 namespace InjectedWorker.WPF
 {
-    class WPFGetFocusedElement : GetFocusedElement<DependencyObject>
+    class WPFGetFocusedElement : GetFocusedElement
     {
         public override Reply Run<T>(ControlsStorage<T> controls, IDictionary<string, dynamic> args)
         {

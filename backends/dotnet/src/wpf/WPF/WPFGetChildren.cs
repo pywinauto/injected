@@ -8,7 +8,7 @@ using System.Windows.Media.Media3D;
 
 namespace InjectedWorker.WPF
 {
-    class WPFGetChildren : GetChildrenAction<DependencyObject>
+    class WPFGetChildren : GetChildren
     {
         private ControlsStorage<DependencyObject> ControlsStorage;
 

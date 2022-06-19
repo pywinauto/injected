@@ -5,7 +5,7 @@ using System.Reflection;
 
 namespace InjectedWorker.WPF
 {
-    class WPFSetProperty : SetProperty<DependencyObject>
+    class WPFSetProperty : SetProperty
     {
         public override Reply Run<T>(ControlsStorage<T> controls, IDictionary<string, dynamic> args)
         {
