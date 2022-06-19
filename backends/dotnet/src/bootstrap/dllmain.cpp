@@ -5,8 +5,11 @@
 
 extern "C" __declspec(dllexport) int LoadWorkerDll();
 bool initWorkerDllAbsolutePath(HMODULE hCurrentDll, wchar_t* buf, size_t len, const wchar_t* workerDllName);
+ICLRRuntimeInfo* FindAvailableClrSince4(ICLRMetaHost* metaHost);
 
 wchar_t workerDllPath[MAX_PATH] = { 0 };
+
+// TODO add functions to enable/disable logging, set log level, unload dlls
 
 BOOL APIENTRY DllMain( HMODULE hModule,
                        DWORD  ul_reason_for_call,
@@ -72,6 +75,17 @@ bool initWorkerDllAbsolutePath(HMODULE hCurrentDll, wchar_t* buf, size_t len, co
     return true;
 }
 
+
+bool OK(HRESULT res, const char* name) {
+    if (res != S_OK) {
+        Log().LogLastError();
+        Log().Get() << name << " failed with return value " << res;
+        return false;
+    }
+    return true;
+}
+
+
 /* The code below is inspired by these articles:
 * https://web.archive.org/web/20101224064236/http:/codingthewheel.com/archives/how-to-inject-a-managed-assembly-dll
 * https://blog.adamfurmanek.pl/2016/04/16/dll-injection-part-4/
@@ -89,48 +103,75 @@ int LoadWorkerDll() {
 
     // TODO CorBindToRuntimeEx for .NET < 4.0
     ICLRMetaHost* metaHost = nullptr;
-    if (CLRCreateInstance(CLSID_CLRMetaHost, IID_ICLRMetaHost, (LPVOID*)&metaHost) == S_OK) {
-        // TODO EnumerateLoadedRuntimes ?
-        const wchar_t* runtimeVersion = L"v4.0.30319";
-        ICLRRuntimeInfo* runtimeInfo = nullptr;
-        if (metaHost->GetRuntime(runtimeVersion, IID_ICLRRuntimeInfo, (LPVOID*)&runtimeInfo) == S_OK) {
+    if (OK(CLRCreateInstance(CLSID_CLRMetaHost, IID_ICLRMetaHost, (LPVOID*)&metaHost), "CLRCreateInstance")) {
+        ICLRRuntimeInfo* runtimeInfo = FindAvailableClrSince4(metaHost);
+        if (runtimeInfo) {
             ICLRRuntimeHost* runtimeHost = nullptr;
-            if (runtimeInfo->GetInterface(CLSID_CLRRuntimeHost, IID_ICLRRuntimeHost, (LPVOID*)&runtimeHost) == S_OK) {
+            if (OK(runtimeInfo->GetInterface(CLSID_CLRRuntimeHost, IID_ICLRRuntimeHost, (LPVOID*)&runtimeHost), "GetInterface")) {
                 Log().Get() << "runtimeHost->Start()...";
-
                 runtimeHost->Start();
 
                 Log().Get() << "load worker dll and start server - " << workerDllPath;
                 DWORD pReturnValue;
-                int ret = runtimeHost->ExecuteInDefaultAppDomain(workerDllPath, L"InjectedWorker.Server", L"Start", L"", &pReturnValue);
-                if (ret == S_OK) {
+                if (OK(runtimeHost->ExecuteInDefaultAppDomain(workerDllPath, L"InjectedWorker.Server", L"Start", L"", &pReturnValue), "ExecuteInDefaultAppDomain")) {
                     Log().Get() << "worker dll: server is finished";
-                }
-                else {
-                    Log().LogLastError();
-                    Log().Get() << "ExecuteInDefaultAppDomain failed with return value " << ret;
                 }
 
                 runtimeHost->Release();
             }
-            else {
-                Log().LogLastError();
-                Log().Get() << "GetInterface() failed";
-            }
             runtimeInfo->Release();
         }
         else {
-            Log().LogLastError();
-            Log().Get() << "GetRuntime() failed";
+            Log().Get() << "Error: CLR >= 4.0 not found!";
         }
         metaHost->Release();
-    }
-    else {
-        Log().LogLastError();
-        Log().Get() << "bootstrap: CLRCreateInstance() failed";
     }
 
     return 0;
 }
 
-// TODO add functions to enable/disable logging, set log level, unload dlls
+ICLRRuntimeInfo* GetCLRWithMajorVersionSince4(IEnumUnknown* runtimes) {
+    ICLRRuntimeInfo* runtime = nullptr;
+
+    DWORD versionBufLen = 30;
+    wchar_t* versionBuf = new wchar_t[versionBufLen];
+    ULONG fetched;
+    ICLRRuntimeInfo* rt = nullptr;
+    while (!runtime && OK(runtimes->Next(1, (IUnknown**)&rt, &fetched), "Next")) {
+        if (OK(rt->GetVersionString(versionBuf, &versionBufLen), "GetVersionString")) {
+            Log().Get() << "Available runtime: " << versionBuf;
+
+            // example version string: v4.0.30319, check major version
+            if (_wtoi(versionBuf + 1) >= 4) {
+                Log().Get() << "Selected runtime: " << versionBuf;
+                runtime = rt;
+            }
+            else {
+                rt->Release();
+            }
+        }
+    }
+
+    delete[] versionBuf;
+    return runtime;
+}
+
+ICLRRuntimeInfo* FindAvailableClrSince4(ICLRMetaHost* metaHost) {
+    ICLRRuntimeInfo* runtime = nullptr;
+
+    IEnumUnknown* runtimes = nullptr;
+    if (OK(metaHost->EnumerateLoadedRuntimes(GetCurrentProcess(), &runtimes), "EnumerateLoadedRuntimes")) {
+        runtime = GetCLRWithMajorVersionSince4(runtimes);
+        runtimes->Release();
+    }
+
+    if (!runtime) {
+        Log().Get() << "CLR >= 4.0 is not loaded, trying to find it in installed";
+        if (OK(metaHost->EnumerateInstalledRuntimes(&runtimes), "EnumerateInstalledRuntimes")) {
+            runtime = GetCLRWithMajorVersionSince4(runtimes);
+            runtimes->Release();
+        }
+    }
+
+    return runtime;
+}
