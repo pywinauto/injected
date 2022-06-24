@@ -35,7 +35,7 @@ namespace InjectedWorker.WPF
             this.KnownTypes.Add(typeof(System.Windows.Controls.Primitives.ToggleButton), "Button");
             this.KnownTypes.Add(typeof(System.Windows.Controls.TextBox), "Edit");
             this.KnownTypes.Add(typeof(System.Windows.Controls.PasswordBox), "Edit");
-            this.KnownTypes.Add(typeof(System.Windows.Controls.ScrollViewer), "ScrollBar");
+            this.KnownTypes.Add(typeof(System.Windows.Controls.Primitives.ScrollBar), "ScrollBar");
             this.KnownTypes.Add(typeof(System.Windows.Controls.CheckBox), "CheckBox");
             this.KnownTypes.Add(typeof(System.Windows.Controls.RadioButton), "RadioButton");
             this.KnownTypes.Add(typeof(System.Windows.Controls.RichTextBox), "Document");
