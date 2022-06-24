@@ -141,7 +141,7 @@ namespace InjectedWorker.WPF
             {
                 result.Add(ControlsStorage.RegisterControl(o.Content as DependencyObject));
             }
-            else if (o.Content != null)
+            else
             {
                 // if property value is not control (for example, string or DateTime object), try to search in visual tree
                 GetChildrenOf(result, o as DependencyObject);
