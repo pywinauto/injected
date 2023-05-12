@@ -1,8 +1,10 @@
 cmake_minimum_required(VERSION 3.10)
 
 project( winmsg_cather CXX )
+
 set( SOURCE_LIB dllmain.cpp )
 set ( CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON )
+
 if (CMAKE_SIZEOF_VOID_P EQUAL 8)
     add_library( pywinmsg64 SHARED ${SOURCE_LIB} )
 else ()
