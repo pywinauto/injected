@@ -15,10 +15,9 @@ Link to PyPi: <https://pypi.org/project/injectdll/>
 ## Development
 
 1. Clone repository: <https://github.com/pywinauto/injected.git>
-
 2. Create new features or improve exiting (for the injectdll package)
-
 3. After work run setup.py from project root to check standalone
+
         python.exe setup.py bdist_wheel
 
 ## Requirements
