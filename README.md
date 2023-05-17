@@ -47,7 +47,6 @@ Link to PyPi: https://pypi.org/project/injectdll/
 
 * cmake >= 3.26.3
 
-
 **NOTE**: You may use PyCharm + Visual Studio with C++/C# components for development 
 
 ### License
