@@ -36,10 +36,6 @@ from . import sysinfo
 from . import cfuncs
 
 
-class TimeoutError(RuntimeError):
-    pass
-
-
 class Injector(object):
     """Class for injections dll"""
 
@@ -52,8 +48,8 @@ class Injector(object):
         self.h_process = self._get_process_handle(self.pid)
 
         self.dll_path = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                     '../dist/backends', backend_name,
-                                     'bin', 'x{}'.format("64" if sysinfo.is64_bitprocess(self.pid) else "86"),
+                                     '../libs', backend_name,
+                                     'x{}'.format("64" if sysinfo.is64_bitprocess(self.pid) else "86"),
                                      '{}.dll'.format(dll_name)).encode('utf-16' if self.is_unicode
                                                                        else locale.getpreferredencoding())
         self._inject_dll_to_process()
@@ -107,7 +103,7 @@ class Injector(object):
             raise RuntimeError("Couldn't create remote thread, dll not injected, inject and try again!")
 
     def remote_call_int_param_func(self, func_name, param):
-        # Resolve paramtype for different applications
+        # Resolve param type for different applications
         a = ctypes.c_int64(param) if sysinfo.is64_bitprocess(self.pid) else ctypes.c_int32(param)
 
         arg_address = cfuncs.VirtualAllocEx(self.h_process, 0, ctypes.sizeof(a),

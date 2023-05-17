@@ -42,7 +42,9 @@ try:
     # Disable 'INFO' logs from comtypes
     log = logging.getLogger('comtypes')
     log.setLevel('WARNING')
+
     import comtypes  # noqa: E402
+
     UIA_support = True
 except ImportError:
     UIA_support = False

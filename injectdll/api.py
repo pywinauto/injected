@@ -48,22 +48,18 @@ INVALID_VALUE = 7
 
 class InjectedBaseError(Exception):
     """Base class for exceptions based on errors returned from injected DLL side"""
-    pass
 
 
 class InjectedUnsupportedActionError(InjectedBaseError):
     """The specified action is not supported"""
-    pass
 
 
 class InjectedRuntimeError(InjectedBaseError):
     """Runtime exception during code execution inside injected target"""
-    pass
 
 
 class InjectedNotFoundError(InjectedBaseError):
     """Requested item not found: control element, property, ..."""
-    pass
 
 
 class Singleton(type):

@@ -50,7 +50,7 @@ package_dll_dirs = ['./injectdll/libs/dotnet/', './injectdll/libs/hook/']
 cmake_dirs = build_dll_dirs
 
 # cmake build for DLLs
-for arch in arch_names_map.keys():
+for arch in arch_names_map:
     for cmake_dir in cmake_dirs:
         build_dir = cmake_dir + build_dirname + arch
 
@@ -60,13 +60,13 @@ for arch in arch_names_map.keys():
         subprocess.check_call(['cmake', '--build', build_dir])
 
 # copy DLLs to the package
-for arch in arch_names_map.keys():
+for arch in arch_names_map:
     for build_dll_dir, package_dll_dir in zip(build_dll_dirs, package_dll_dirs):
-        for root, dirs, files in os.walk(build_dll_dir + build_dirname + arch):
+        for root, _, files in os.walk(build_dll_dir + build_dirname + arch):
             for file in files:
                 if file.endswith('.dll'):
                     src_file_path = os.path.join(root, file)
-                    dest_file_path = os.path.join(package_dll_dir + arch_names_map[arch], file)
+                    dest_file_path = os.path.join(package_dll_dir + arch_names_map.get(arch), file)
                     os.makedirs(os.path.dirname(dest_file_path), exist_ok=True)
                     shutil.copy(src_file_path, dest_file_path)
 

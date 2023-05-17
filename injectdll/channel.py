@@ -33,7 +33,7 @@ import time
 import win32file
 import win32pipe
 import winerror
-import logging
+from .actionlogger import ActionLogger
 
 
 class InjectedBrokenPipeError(Exception):
@@ -63,12 +63,12 @@ class Pipe(object):
                     None,
                     None,
                 )
-                logging.log('Connected to the pipe {}'.format(self.name))
+                ActionLogger().log('Connected to the pipe {}'.format(self.name))
                 break
             except pywintypes.error as e:
                 if e.args[0] == winerror.ERROR_FILE_NOT_FOUND:
-                    logging.log('Attempt {}/{}: failed to connect to the pipe {}'.format(i + 1, n_attempts,
-                                                                                         self.name))
+                    ActionLogger().log('Attempt {}/{}: failed to connect to the pipe {}'.format(i + 1, n_attempts,
+                                                                                                self.name))
                     time.sleep(delay)
                 else:
                     raise InjectedBrokenPipeError('Unexpected pipe error: {}'.format(e))

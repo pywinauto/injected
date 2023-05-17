@@ -74,17 +74,14 @@ class _CustomLogger(object):
     @staticmethod
     def set_level(level):
         """Set a logging level"""
-        pass
 
     @staticmethod
     def reset_level():
         """Reset a logging level to a default"""
-        pass
 
     @staticmethod
     def disable():
         """Set a logging level to one above INFO to disable logs emitting"""
-        pass
 
     def log(self, *args):
         """Process a log message"""
@@ -159,11 +156,9 @@ class _StandardLogger(object):
 
     def log_section_start(self, msg):
         """Empty for now, just to conform with _CustomLogger"""
-        pass
 
     def log_section_end(self):
         """Empty for now, just to conform with _CustomLogger"""
-        pass
 
 
 # Define which logging facilities should be used for pywinauto traces
